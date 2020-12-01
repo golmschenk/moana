@@ -1,5 +1,9 @@
+import copy
 import itertools
 import random
+import re
+from pathlib import Path
+import numpy as np
 import pandas as pd
 from bokeh import palettes
 from bokeh.colors import Color
@@ -8,6 +12,7 @@ from bokeh.models import ColumnDataSource, Whisker, Row, Box, DataTable, TableCo
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
+from moana.david_bennett_fit.light_curve import LightCurveFileLiaison
 from moana.dbc import Output
 
 
@@ -26,9 +31,9 @@ class Viewer:
                                                      color: Color, y_column_name='magnification'):
         light_curve_data_frame = light_curve_data_frame.copy()
         light_curve_data_frame['plus_error'] = light_curve_data_frame[y_column_name
-                                                             ] + light_curve_data_frame['magnification_error']
+                                               ] + light_curve_data_frame['magnification_error']
         light_curve_data_frame['minus_error'] = light_curve_data_frame[y_column_name
-                                                              ] - light_curve_data_frame['magnification_error']
+                                                ] - light_curve_data_frame['magnification_error']
         source = ColumnDataSource(light_curve_data_frame)
         line_alpha = 0.8
         fill_alpha = 0.2
@@ -52,7 +57,8 @@ class Viewer:
         magnification_error = moana_data_frame.loc[mask, 'sig_mgf']
         magnification_residual = moana_data_frame.loc[mask, 'res_mgf']
         light_curve_data_frame = pd.DataFrame({'microlensing_hjd': microlensing_hjd,
-                                               'magnification': magnification, 'magnification_error': magnification_error,
+                                               'magnification': magnification,
+                                               'magnification_error': magnification_error,
                                                'magnification_residual': magnification_residual})
         return light_curve_data_frame
 
@@ -80,6 +86,9 @@ class Viewer:
     def add_fit_of_run_to_light_curve_and_residual_figures(self, run: Output, light_curve_figure: Figure,
                                                            residual_figure: Figure):
         run_name = run.run
+        if re.match(r'run_\d+(\.in)?', run_name):
+            run_name = Path(run.path).stem
+        run_name = run_name[-20:]
         fit_color = self.get_fit_color(run_name)
         fit_times = run.fitlc['date']
         fit_magnifications = run.fitlc['mgf']
@@ -117,11 +126,12 @@ class Viewer:
     def create_comparison_view(self, run0: Output, run1: Output) -> Box:
         comparison_view_components = self.create_comparison_view_components()
         light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot = comparison_view_components
+        scale, shift = self.calculate_mean_relative_instrument_scale_and_shift(run0, run1)
+        run1 = self.reverse_scale_and_shift_run(run1, scale, shift)
         self.add_instrument_data_points_of_run_to_light_curve_and_residual_figures(run0, light_curve_figure,
                                                                                    residual_figure0)
         self.add_instrument_data_points_of_run_to_figure(run1, residual_figure1,
                                                          y_column_name='magnification_residual')
-        # shift, scale = self.calculate_median_relative_instrument_shift_and_scale(run0, run1)
         self.add_fit_of_run_to_light_curve_and_residual_figures(run1, light_curve_figure, residual_figure1)
         self.add_fit_of_run_to_light_curve_and_residual_figures(run0, light_curve_figure, residual_figure0)
         residual_figure0.legend.visible = False
@@ -151,5 +161,33 @@ class Viewer:
         comparison_data_table.height = 100
         return comparison_data_table
 
-    def calculate_median_relative_instrument_shift_and_scale(self, run0: Output, run1: Output) -> (float, float):
-        pass
+    def calculate_mean_relative_instrument_scale_and_shift(self, run0: Output, run1: Output) -> (float, float):
+        run_path0 = Path(run0.path)
+        run_path1 = Path(run1.path)
+        residual_path0 = run_path0.joinpath(f'resid.{run0.run}')
+        residual_path1 = run_path1.joinpath(f'resid.{run1.run}')
+        liaison = LightCurveFileLiaison()
+        parameter_series0 = liaison.load_normalization_parameters_from_residual_file(residual_path0)
+        parameter_series1 = liaison.load_normalization_parameters_from_residual_file(residual_path1)
+        parameter_data_frame = pd.DataFrame([parameter_series0, parameter_series1]).reset_index(drop=True)
+        parameter_data_frame = parameter_data_frame.dropna(axis=1)
+        scale_parameter_data_frame = parameter_data_frame.filter(regex=r'^A0.*')
+        scale_parameter_data_frame.columns = scale_parameter_data_frame.columns.str.replace('A0', '')
+        shift_parameter_data_frame = parameter_data_frame.filter(regex=r'^A2.*')
+        shift_parameter_data_frame.columns = shift_parameter_data_frame.columns.str.replace('A2', '')
+        relative_scale_series = scale_parameter_data_frame.iloc[0] / scale_parameter_data_frame.iloc[1]
+        relative_shift_series = ((shift_parameter_data_frame.iloc[0] - shift_parameter_data_frame.iloc[1]) /
+                                 scale_parameter_data_frame.iloc[1])
+        instrument_data_count_series = run0.resid['sfx'].value_counts()
+        instrument_data_count_series = instrument_data_count_series.filter(relative_scale_series.index)
+        relative_scale = np.average(relative_scale_series.values, weights=instrument_data_count_series.values)
+        relative_shift = np.average(relative_shift_series.values, weights=instrument_data_count_series.values)
+        return relative_scale, relative_shift
+
+    def reverse_scale_and_shift_run(self, run: Output, scale: float, shift: float) -> Output:
+        run = copy.deepcopy(run)
+        run.fitlc['mgf'] = (run.fitlc['mgf'] - shift) / scale
+        run.resid['mgf_data'] = (run.resid['mgf_data'] - shift) / scale
+        run.resid['res_mgf'] = run.resid['res_mgf'] / scale
+        run.resid['sig_mgf'] = run.resid['sig_mgf'] / scale
+        return run

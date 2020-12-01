@@ -21,8 +21,8 @@ class LightCurveFileLiaison:
         """
         light_curve_data_frame.to_csv(path, header=False, index=False, sep=' ')
 
-    def load_light_curve_magnification_normalization_parameters_from_residual_file(self, residual_path: Path
-                                                                                   ) -> pd.Series:
+    def load_normalization_parameters_from_residual_file(self, residual_path: Path
+                                                         ) -> pd.Series:
         """
         Load the light curve magnification normalization parameters from a residual file.
 
@@ -45,5 +45,5 @@ class LightCurveFileLiaison:
         parameter_data_frame = pd.read_csv(parameter_table_string_io, delim_whitespace=True, skipinitialspace=True)
         parameter_series = parameter_data_frame.iloc[0]  # There's only a single row. Convert to series.
         parameter_series = parameter_series[parameter_series != 0]  # Zero values are just fillers.
-        parameter_series = parameter_series.filter(regex=r'(A0|A2).*')  # Keep only light curve normalization values.
+        parameter_series = parameter_series.filter(regex=r'^(A0|A2).*')  # Keep only light curve normalization values.
         return parameter_series
