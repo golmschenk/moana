@@ -1,6 +1,5 @@
 import itertools
 import random
-
 import pandas as pd
 from bokeh import palettes
 from bokeh.colors import Color
@@ -8,6 +7,7 @@ from bokeh.layouts import gridplot
 from bokeh.models import ColumnDataSource, Whisker, Row, Box, DataTable, TableColumn, ScientificFormatter
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
+
 from moana.dbc import Output
 
 

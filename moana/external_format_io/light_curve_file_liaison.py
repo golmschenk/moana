@@ -3,8 +3,9 @@ Code to interact with light curve files of various formats.
 """
 from enum import Enum
 from pathlib import Path
-
 import pandas as pd
+
+from moana.david_bennett_fit.light_curve import LightCurveFileLiaison as DavidBennettLightCurveFileLiaison
 
 
 class ColumnNames(Enum):
@@ -17,16 +18,6 @@ class ColumnNames(Enum):
 
 
 class LightCurveFileLiaison:
-    @staticmethod
-    def save_light_curve_to_david_bennett_format_file(path, light_curve_data_frame):
-        """
-        Saves a light curve data frame to a file of the format expected by David Bennett's code.
-
-        :param path: The path to the output file.
-        :param light_curve_data_frame: The light curve data frame.
-        """
-        light_curve_data_frame.to_csv(path, header=False, index=False, sep=' ')
-
     @staticmethod
     def load_ian_bond_light_curve(ian_bond_input_path: Path) -> pd.DataFrame:
         """
@@ -49,13 +40,15 @@ class LightCurveFileLiaison:
 
     def convert_light_curve_file_from_ian_bond_format_to_david_bennet_format(self, ian_bond_input_path: Path,
                                                                              david_bennett_output_path: Path):
-        david_bennett_data_frame = self.load_ian_bond_light_curve(ian_bond_input_path)
-        self.save_light_curve_to_david_bennett_format_file(david_bennett_output_path, david_bennett_data_frame)
+        light_curve_data_frame = self.load_ian_bond_light_curve(ian_bond_input_path)
+        DavidBennettLightCurveFileLiaison.save_light_curve_to_david_bennett_format_file(david_bennett_output_path,
+                                                                                        light_curve_data_frame)
 
     def convert_light_curve_file_from_kmt_tlc_format_to_david_bennet_format(self, kmt_tlc_input_path: Path,
                                                                             david_bennett_output_path: Path):
-        david_bennett_data_frame = self.load_kmt_tlc_light_curve(kmt_tlc_input_path)
-        self.save_light_curve_to_david_bennett_format_file(david_bennett_output_path, david_bennett_data_frame)
+        light_curve_data_frame = self.load_kmt_tlc_light_curve(kmt_tlc_input_path)
+        DavidBennettLightCurveFileLiaison.save_light_curve_to_david_bennett_format_file(david_bennett_output_path,
+                                                                                        light_curve_data_frame)
 
     @staticmethod
     def load_kmt_tlc_light_curve(kmt_tlc_input_path: Path) -> pd.DataFrame:
@@ -79,7 +72,8 @@ class LightCurveFileLiaison:
     def convert_light_curve_file_from_lco_format_to_david_bennet_format(self, lco_input_path: Path,
                                                                         david_bennett_output_path: Path):
         david_bennett_data_frame = self.load_lco_light_curve(lco_input_path)
-        self.save_light_curve_to_david_bennett_format_file(david_bennett_output_path, david_bennett_data_frame)
+        DavidBennettLightCurveFileLiaison.save_light_curve_to_david_bennett_format_file(david_bennett_output_path,
+                                                                                        david_bennett_data_frame)
 
     @staticmethod
     def load_lco_light_curve(lco_input_path: Path) -> pd.DataFrame:
@@ -100,8 +94,8 @@ class LightCurveFileLiaison:
 
     def convert_light_curve_file_from_dophot_format_to_david_bennet_format(self, dophot_input_path: Path,
                                                                            david_bennett_output_path: Path):
-        david_bennett_data_frame = self.load_dophot_light_curve(dophot_input_path)
-        david_bennett_data_frame.to_csv(david_bennett_output_path, header=False, index=False, sep=' ')
+        light_curve_data_frame = self.load_dophot_light_curve(dophot_input_path)
+        light_curve_data_frame.to_csv(david_bennett_output_path, header=False, index=False, sep=' ')
 
     @staticmethod
     def load_dophot_light_curve(dophot_input_path: Path) -> pd.DataFrame:
