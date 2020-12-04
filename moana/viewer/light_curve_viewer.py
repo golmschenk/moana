@@ -14,18 +14,10 @@ from bokeh.plotting import Figure
 
 from moana.david_bennett_fit.light_curve import LightCurveFileLiaison
 from moana.dbc import Output
+from moana.viewer.color_mapper import ColorMapper
 
 
 class LightCurveViewer:
-    def __init__(self):
-        self.fit_colors = [element for element in itertools.chain.from_iterable(
-            itertools.zip_longest(palettes.Greys[5][:4], palettes.Reds[5][:4])) if element]
-        self.fit_name_to_color_dictionary = {}
-        unshuffled_instrument_colors = list(palettes.Category20[20])
-        random.seed(3)
-        self.instrument_colors = random.sample(unshuffled_instrument_colors, len(unshuffled_instrument_colors))
-        self.instrument_to_color_dictionary = {}
-
     @staticmethod
     def add_light_curve_points_with_errors_to_figure(figure: Figure, light_curve_data_frame: pd.DataFrame, name: str,
                                                      color: Color, y_column_name='magnification'):
@@ -72,16 +64,12 @@ class LightCurveViewer:
                                                     y_column_name: str = 'magnification'):
         instrument_suffixes = sorted(run.resid['sfx'].unique())
         for instrument_suffix in instrument_suffixes:
-            instrument_color = self.get_instrument_color(instrument_suffix)
+            color_mapper = ColorMapper()
+            instrument_color = color_mapper.get_instrument_color(instrument_suffix)
             instrument_data_frame = self.extract_instrument_specific_light_curve_data_frame(run.resid,
                                                                                             instrument_suffix)
             self.add_light_curve_points_with_errors_to_figure(figure, instrument_data_frame, instrument_suffix,
                                                               instrument_color, y_column_name)
-
-    def get_instrument_color(self, instrument_suffix: str) -> Color:
-        if instrument_suffix not in self.instrument_to_color_dictionary:
-            self.instrument_to_color_dictionary[instrument_suffix] = self.instrument_colors.pop(0)
-        return self.instrument_to_color_dictionary[instrument_suffix]
 
     def add_fit_of_run_to_light_curve_and_residual_figures(self, run: Output, light_curve_figure: Figure,
                                                            residual_figure: Figure):
@@ -89,7 +77,8 @@ class LightCurveViewer:
         if re.match(r'run_\d+(\.in)?', run_name):
             run_name = Path(run.path).stem
         run_name = run_name[-20:]
-        fit_color = self.get_fit_color(run_name)
+        color_mapper = ColorMapper()
+        fit_color = color_mapper.get_fit_color(run_name)
         fit_times = run.fitlc['date']
         fit_magnifications = run.fitlc['mgf']
         fit_data_frame = pd.DataFrame({'microlensing_hjd': fit_times, 'magnification': fit_magnifications})
@@ -104,11 +93,6 @@ class LightCurveViewer:
         residual_guide_data_source = ColumnDataSource(residual_guide_data_frame)
         residual_figure.line(source=residual_guide_data_source, x='microlensing_hjd', y='residual',
                              line_color=fit_color, line_width=2, legend_label=run_name)
-
-    def get_fit_color(self, fit_name: str) -> Color:
-        if fit_name not in self.fit_name_to_color_dictionary:
-            self.fit_name_to_color_dictionary[fit_name] = self.fit_colors.pop(0)
-        return self.fit_name_to_color_dictionary[fit_name]
 
     def create_comparison_view_components(self):
         light_curve_figure = Figure()
