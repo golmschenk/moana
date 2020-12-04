@@ -16,7 +16,7 @@ from moana.david_bennett_fit.light_curve import LightCurveFileLiaison
 from moana.dbc import Output
 
 
-class Viewer:
+class LightCurveViewer:
     def __init__(self):
         self.fit_colors = [element for element in itertools.chain.from_iterable(
             itertools.zip_longest(palettes.Greys[5][:4], palettes.Reds[5][:4])) if element]
