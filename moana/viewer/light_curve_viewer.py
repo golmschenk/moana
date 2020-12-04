@@ -12,6 +12,7 @@ from bokeh.models import ColumnDataSource, Whisker, Row, Box, DataTable, TableCo
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
+from moana import dbc
 from moana.david_bennett_fit.light_curve import LightCurveFileLiaison
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
@@ -122,7 +123,13 @@ class LightCurveViewer:
         residual_figure1.legend.visible = False
         return combination_grid_plot
 
-    def create_run_parameter_comparison_table(self, run0: Output, run1: Output) -> DataTable:
+    def create_run_parameter_comparison_table(self, run_path0: Path, run_path1: Path) -> DataTable:
+        run0 = dbc.Output(run_path0.stem, path=str(run_path0.parent))
+        run0.load()
+        run1 = dbc.Output(run_path1.stem, path=str(run_path1.parent))
+        run1.load()
+        run0.run = run_path0.parent.stem[-20:]  # TODO: Don't do this here.
+        run1.run = run_path1.parent.stem[-20:]  # TODO: Don't do this here.
         run0_parameters: pd.Series = run0.param
         run1_parameters: pd.Series = run1.param
         column_names_to_keep = ['chisq', 't_E', 't0', 'umin', 'sep', 'theta', 'eps1', 'eps2', 'Tstar']

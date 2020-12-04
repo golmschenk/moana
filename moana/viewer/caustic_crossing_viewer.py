@@ -10,11 +10,12 @@ from bokeh.models import Title
 from bokeh.plotting import Figure
 
 import moana
+from moana.viewer.color_mapper import ColorMapper
 
 
 class CausticCrossingViewer:
     @classmethod
-    def figure_for_run(cls, run_path: Path, title: Union[None, str] = None) -> Figure:
+    def figure_for_run_path(cls, run_path: Path, title: Union[None, str] = None) -> Figure:
         figure = Figure()
         if title is not None:
             title_ = Title()
@@ -46,15 +47,17 @@ class CausticCrossingViewer:
         imaginary_component0 = np.imag(half_caustic)
         caustic_color = 'red'
         caustic_glpyh_radius = 0.01
-        figure.diamond(x=real_component0, y=imaginary_component0, line_color=caustic_color, fill_alpha=0)
+        figure.diamond(x=real_component0, y=imaginary_component0, line_color=caustic_color, fill_alpha=0, size=2)
 
         # Lower part of the caustic (it is symmetric): 2nd half of the caustic
         real_component1 = np.real(half_caustic)
         imaginary_component1 = -np.imag(half_caustic)
-        figure.diamond(x=real_component1, y=imaginary_component1, line_color=caustic_color, fill_alpha=0)
+        figure.diamond(x=real_component1, y=imaginary_component1, line_color=caustic_color, fill_alpha=0, size=2)
 
         # Plot the source trajectory
         x = fit_model.fitlc['xs']
         y = fit_model.fitlc['ys']
-        figure.line(x=x, y=y, color='black')
+        color_mapper = ColorMapper()
+        fit_color = color_mapper.get_fit_color(run_path.parent.stem[-20:])  # TODO: Don't do this here
+        figure.line(x=x, y=y, color=fit_color, line_width=2)
         return figure

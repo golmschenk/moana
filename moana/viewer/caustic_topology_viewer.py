@@ -12,14 +12,14 @@ from moana.viewer.color_mapper import ColorMapper
 
 class CausticTopologyViewer:
     @classmethod
-    def figure_for_run(cls, run_path: Path) -> Figure:
+    def figure_for_run_path(cls, run_path: Path) -> Figure:
         viewer = CausticTopologyViewer()
         figure = viewer.create_caustic_topology_figure()
         viewer.add_run_to_figure(figure, run_path)
         return figure
 
     @classmethod
-    def figure_for_multiple_runs(cls, run_paths: List[Path]) -> Figure:
+    def figure_for_multiple_run_paths(cls, run_paths: List[Path]) -> Figure:
         viewer = CausticTopologyViewer()
         figure = viewer.create_caustic_topology_figure()
         for run_path in run_paths:
@@ -28,7 +28,7 @@ class CausticTopologyViewer:
 
     @staticmethod
     def create_caustic_topology_figure():
-        figure = Figure(x_axis_label='Separation', y_axis_label='Mass ratio')
+        figure = Figure(x_axis_label='Separation', y_axis_label='Mass ratio', x_axis_type='log', y_axis_type='log')
         mass_ratios = np.logspace(-5, 0, 100)
         wide_to_resonant_caustic_limit_separations = moana.lens.wide_limit_2l(mass_ratios)
         close_to_resonant_caustic_limit_separations = moana.lens.close_limit_2l(mass_ratios)
