@@ -163,9 +163,9 @@ class LightCurveViewer:
         parameter_data_frame = pd.DataFrame([parameter_series0, parameter_series1]).reset_index(drop=True)
         parameter_data_frame = parameter_data_frame.dropna(axis=1)
         scale_parameter_data_frame = parameter_data_frame.filter(regex=r'^A0.*')
-        scale_parameter_data_frame.columns = scale_parameter_data_frame.columns.str.replace('A0', '')
+        scale_parameter_data_frame.columns = scale_parameter_data_frame.columns.str.replace('^A0', '', regex=True)
         shift_parameter_data_frame = parameter_data_frame.filter(regex=r'^A2.*')
-        shift_parameter_data_frame.columns = shift_parameter_data_frame.columns.str.replace('A2', '')
+        shift_parameter_data_frame.columns = shift_parameter_data_frame.columns.str.replace('^A2', '', regex=True)
         relative_scale_series = scale_parameter_data_frame.iloc[0] / scale_parameter_data_frame.iloc[1]
         relative_shift_series = ((shift_parameter_data_frame.iloc[0] - shift_parameter_data_frame.iloc[1]) /
                                  scale_parameter_data_frame.iloc[1])

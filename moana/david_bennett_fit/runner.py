@@ -24,12 +24,12 @@ class DavidBennettFitRunner:
 
         :return: The path to the fit run directory.
         """
-        self.fit_run_directory.mkdir()
+        self.fit_run_directory.mkdir(exist_ok=True, parents=True)
         self.generate_david_bennett_parameter_file()
         self.generate_david_bennett_run_input_file()
 
     def generate_david_bennett_parameter_file(self):
-        existing_parameter_file = Path('data/mb20208/old_flat_directory_style_runs/parMB20208')
+        existing_parameter_file = Path('data/mb20208/template/parMB20208')
         shutil.copy(existing_parameter_file, self.fit_run_directory.joinpath('parMB20208'))
         # TODO: Generate this from script variables rather than just copying an existing one.
 
@@ -43,7 +43,7 @@ class DavidBennettFitRunner:
         run_configuration_lines = 'MB20208\n' \
                                   'run_\n' \
                                   'no limb\n' \
-                                  '17 53 24.6311 -32 40 20.3141\n' \
+                                  '17 53 43.80 -32 35 21.52\n' \
                                   '0\n'
         instruction_lines = 'SET EPS   1.e-5\n' \
                             'DSEEK      3000\n' \
@@ -56,8 +56,7 @@ class DavidBennettFitRunner:
                              instruction_lines)
 
     def run(self):
-        path_to_bennett_fitting_executable = Path(
-            '/Users/golmschenk/Code/bennett_fitting/fit_rvg4_CRtpar/cmake-build-debug/minuit_all_rvg4Ctpar.xO')
+        path_to_bennett_fitting_executable = Path('fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO').absolute()
 
         run_path = self.fit_run_directory.joinpath('run_1.in')
 
