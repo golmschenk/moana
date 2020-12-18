@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 from pathlib import Path
 
-from bokeh.models import Title
+from bokeh.models import Title, PanTool, BoxZoomTool, WheelZoomTool, ResetTool
 from bokeh.plotting import Figure
 
 import moana
@@ -16,7 +16,8 @@ from moana.viewer.color_mapper import ColorMapper
 class CausticCrossingViewer:
     @classmethod
     def figure_for_run_path(cls, run_path: Path, title: Union[None, str] = None) -> Figure:
-        figure = Figure()
+        figure = Figure(match_aspect=True, tools=[PanTool(), BoxZoomTool(match_aspect=True),
+                                                  WheelZoomTool(zoom_on_axis=False), ResetTool()])
         if title is not None:
             title_ = Title()
             title_.text = title

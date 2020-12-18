@@ -6,7 +6,7 @@ from moana.david_bennett_fit.lens_model_parameter import LensModelParameter, Len
 from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiaison, ColumnNames
 from moana.david_bennett_fit.light_curve import LightCurveFileLiaison as DbLightCurveFileLiaison
 
-fit_run_name = 'far_detailed_more_instruments'
+fit_run_name = 'close_detailed_more_instruments_parallax'
 datetime_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 fit_run_directory = Path(f'data/mb20208/runs/{fit_run_name}_{datetime_string}')
 fit_run_directory.mkdir(exist_ok=True, parents=True)
@@ -78,10 +78,8 @@ david_bennett_liaison.save_light_curve_to_david_bennett_format_file(
 # }
 
 lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
-    Path('data/mb20208/runs/moa_detailed_far_2020_11_24/run_2.in')
+    Path('data/mb20208/runs/all_gpu_close_more_instruments_parallax_2020_12_16/run_2.in')
 )
-
-path = Path('data/mb20208/runs/moa_detailed_far_2020_11_24/run_2.in')
 # lens_model_parameter_dictionary[LensModelParameterName.PI_ER.value].temperature = 1e-5
 # lens_model_parameter_dictionary[LensModelParameterName.PI_ETH.value].temperature = 1e-5
 
