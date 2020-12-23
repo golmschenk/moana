@@ -2,9 +2,24 @@
 Code for working with David Bennett's light curve format.
 """
 import re
+from enum import Enum
+import numpy as np
 import pandas as pd
 from io import StringIO
 from pathlib import Path
+
+from moana.dbc import Output
+
+
+class ColumnName(Enum):
+    MICROLENSING_HJD = 'microlensing_hjd'
+    FLUX = 'flux'
+    FLUX_ERROR = 'flux_error'
+    MAGNIFICATION = 'magnification'
+    MAGNIFICATION_ERROR = 'magnification_error'
+    SIGNAL = 'signal'
+    SIGNAL_ERROR = 'signal_error'
+    FULL_WIDTH_HALF_MAX = 'full_width_half_max'
 
 
 class LightCurveFileLiaison:
@@ -21,7 +36,29 @@ class LightCurveFileLiaison:
         """
         light_curve_data_frame.to_csv(path, header=False, index=False, sep=' ')
 
-    def load_normalization_parameters_from_residual_file(self, residual_path: Path
+    @classmethod
+    def from_path(cls, path: Path) -> pd.DataFrame:
+        light_curve_data_frame = pd.read_csv(
+            path, names=[ColumnName.MICROLENSING_HJD.value, ColumnName.SIGNAL.value, ColumnName.SIGNAL_ERROR.value],
+            delim_whitespace=True, skipinitialspace=True
+        )
+        return light_curve_data_frame
+
+    @staticmethod
+    def to_path(light_curve_data_frame: pd.DataFrame, path: Path) -> None:
+        columns_to_save = [ColumnName.MICROLENSING_HJD.value]
+        if ColumnName.SIGNAL.value in light_curve_data_frame.columns:
+            columns_to_save.extend([ColumnName.SIGNAL.value, ColumnName.SIGNAL_ERROR.value])
+        elif ColumnName.FLUX.value in light_curve_data_frame.columns:
+            columns_to_save.extend([ColumnName.FLUX.value, ColumnName.FLUX_ERROR.value])
+        elif ColumnName.MAGNIFICATION.value in light_curve_data_frame.columns:
+            columns_to_save.extend([ColumnName.MAGNIFICATION.value, ColumnName.MAGNIFICATION_ERROR.value])
+        else:
+            raise ValueError('Light curve did not conform to a known type.')
+        light_curve_data_frame.to_csv(path, header=False, columns=columns_to_save, index=False, sep=' ')
+
+    @staticmethod
+    def load_normalization_parameters_from_residual_file(residual_path: Path
                                                          ) -> pd.Series:
         """
         Load the light curve magnification normalization parameters from a residual file.
@@ -47,3 +84,25 @@ class LightCurveFileLiaison:
         parameter_series = parameter_series[parameter_series != 0]  # Zero values are just fillers.
         parameter_series = parameter_series.filter(regex=r'^(A0|A2).*')  # Keep only light curve normalization values.
         return parameter_series
+
+    @classmethod
+    def from_path_with_residuals_from_run(cls, light_curve_path: Path, run_path: Path):
+        run = Output(run_path.name, str(run_path.parent))
+        run.load()
+        run_residual_data_frame = run.resid
+        light_curve_data_frame = cls.from_path(light_curve_path)
+        instrument_suffix = light_curve_path.suffix[1:]
+        light_curve_residual_data_frame = run_residual_data_frame[run_residual_data_frame['sfx'] == instrument_suffix]
+        assert np.allclose(light_curve_data_frame[ColumnName.MICROLENSING_HJD.value],
+                           light_curve_residual_data_frame['date'])
+        light_curve_data_frame['fit_chi_squared'] = light_curve_residual_data_frame['chi2']
+        return light_curve_data_frame
+
+    @classmethod
+    def remove_data_points_by_chi_squared_limit(cls, light_curve_path: Path, run_path: Path,
+                                                updated_light_curve_path: Path, chi_squared_limit: float = 16) -> float:
+        light_curve_data_frame = cls.from_path_with_residuals_from_run(light_curve_path, run_path)
+        updated_light_curve_data_frame = light_curve_data_frame[
+            light_curve_data_frame['fit_chi_squared'] < chi_squared_limit]
+        cls.to_path(updated_light_curve_data_frame, updated_light_curve_path)
+        return light_curve_data_frame['fit_chi_squared'].mean()
