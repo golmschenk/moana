@@ -6,7 +6,9 @@ from moana.david_bennett_fit.lens_model_parameter import LensModelParameter, Len
 from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiaison
 from moana.david_bennett_fit.light_curve import LightCurveFileLiaison as DbLightCurveFileLiaison, ColumnName
 
-fit_run_name = 'close_detailed_more_instruments_parallax'
+print('Fitting script started.', flush=True)
+
+fit_run_name = 'wide_detailed_more_instruments_parallax'
 datetime_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 fit_run_directory = Path(f'data/mb20208/runs/{fit_run_name}_{datetime_string}')
 fit_run_directory.mkdir(exist_ok=True, parents=True)
@@ -78,15 +80,29 @@ david_bennett_liaison.save_light_curve_to_david_bennett_format_file(
 # }
 
 lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
-    Path('data/mb20208/runs/all_gpu_close_more_instruments_parallax_2020_12_16/run_2.in')
+    Path('data/mb20208/runs/far_detailed_more_instruments_2020-12-17-16-20-52/run_1.in')
 )
-# lens_model_parameter_dictionary[LensModelParameterName.PI_ER.value].temperature = 1e-5
-# lens_model_parameter_dictionary[LensModelParameterName.PI_ETH.value].temperature = 1e-5
+
+lens_model_parameter_dictionary['1/t_E'].value = 5.1843511847087971E-002
+lens_model_parameter_dictionary['t0'].value = 9100.9041326801998
+lens_model_parameter_dictionary['umin'].value = 2.9218750199067528E-002
+lens_model_parameter_dictionary['sep'].value = 1.3818666676246494
+lens_model_parameter_dictionary['theta'].value = 3.1187872393536562
+lens_model_parameter_dictionary['eps1'].value = 4.5651598901912739E-004
+lens_model_parameter_dictionary['1/Tbin'].value = 0.0000000000000000
+lens_model_parameter_dictionary['v_sep'].value = 0.0000000000000000
+lens_model_parameter_dictionary['Tstar'].value = 0.45787735366253618
+lens_model_parameter_dictionary['t_fix'].value = 9100.8972159999994
+lens_model_parameter_dictionary['piEr'].value = 0.0000000000000000
+lens_model_parameter_dictionary['pieth'].value = 0.0000000000000000
+
+lens_model_parameter_dictionary[LensModelParameterName.PI_ER.value].temperature = 1e-5
+lens_model_parameter_dictionary[LensModelParameterName.PI_ETH.value].temperature = 1e-5
 
 david_bennett_fit_runner = DavidBennettFitRunner(fit_run_directory=fit_run_directory,
                                                  lens_model_parameter_dictionary=lens_model_parameter_dictionary)
 david_bennett_fit_runner.generate_configuration_files()
 
-print(f'Running `{fit_run_directory}` started at {datetime.datetime.now()}...')
+print(f'Running `{fit_run_directory}` started at {datetime.datetime.now()}...', flush=True)
 david_bennett_fit_runner.run()
-print(f'Finished `{fit_run_directory}` at {datetime.datetime.now()}.')
+print(f'Finished `{fit_run_directory}` at {datetime.datetime.now()}.', flush=True)
