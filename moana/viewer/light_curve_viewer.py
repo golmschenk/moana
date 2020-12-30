@@ -13,7 +13,7 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana import dbc
-from moana.david_bennett_fit.light_curve import LightCurveFileLiaison
+from moana.david_bennett_fit.light_curve import LightCurve
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
 
@@ -157,7 +157,7 @@ class LightCurveViewer:
         run_path1 = Path(run1.path)
         residual_path0 = run_path0.joinpath(f'resid.{run0.run}')
         residual_path1 = run_path1.joinpath(f'resid.{run1.run}')
-        liaison = LightCurveFileLiaison()
+        liaison = LightCurve()
         parameter_series0 = liaison.load_normalization_parameters_from_residual_file(residual_path0)
         parameter_series1 = liaison.load_normalization_parameters_from_residual_file(residual_path1)
         parameter_data_frame = pd.DataFrame([parameter_series0, parameter_series1]).reset_index(drop=True)

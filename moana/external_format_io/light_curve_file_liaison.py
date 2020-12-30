@@ -4,7 +4,7 @@ Code to interact with light curve files of various formats.
 from pathlib import Path
 import pandas as pd
 
-from moana.david_bennett_fit.light_curve import LightCurveFileLiaison as DavidBennettLightCurveFileLiaison, ColumnName
+from moana.david_bennett_fit.light_curve import LightCurve as DavidBennettLightCurveFileLiaison, ColumnName
 
 
 class LightCurveFileLiaison:

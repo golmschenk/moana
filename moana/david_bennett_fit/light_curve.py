@@ -22,7 +22,7 @@ class ColumnName(Enum):
     FULL_WIDTH_HALF_MAX = 'full_width_half_max'
 
 
-class LightCurveFileLiaison:
+class LightCurve:
     """
     A class for working with David Bennett's light curve format.
     """
