@@ -3,6 +3,8 @@ Code for working with David Bennett's light curve format.
 """
 import re
 from enum import Enum
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -26,6 +28,9 @@ class LightCurve:
     """
     A class for working with David Bennett's light curve format.
     """
+    def __init__(self):
+        self.data_frame: Optional[pd.DataFrame] = None
+
     @staticmethod
     def save_light_curve_to_david_bennett_format_file(path, light_curve_data_frame):
         """
@@ -108,3 +113,10 @@ class LightCurve:
         cls.to_path(updated_light_curve_data_frame, updated_light_curve_path)
         return light_curve_data_frame['fit_chi_squared'].mean()
 
+    def remove_data_points_by_error_relative_to_maximum_minimum_range(self, threshold: float = 0.1):
+        maximum_measurement = self.data_frame[ColumnName.PHOTOMETRIC_MEASUREMENT.value].max()
+        minimum_measurement = self.data_frame[ColumnName.PHOTOMETRIC_MEASUREMENT.value].min()
+        difference = maximum_measurement - minimum_measurement
+        absolute_threshold = difference * threshold
+        self.data_frame = self.data_frame[
+            self.data_frame[ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value] < absolute_threshold]
