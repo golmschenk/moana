@@ -8,8 +8,8 @@ from moana.viewer.caustic_topology_viewer import CausticTopologyViewer
 from moana.viewer.run_modifier import RunModifier
 from moana.viewer.light_curve_viewer import LightCurveViewer
 
-run_path1 = Path('data/mb20208/runs/all_gpu_close_more_instruments_parallax_2020_12_16/run_1')
-run_path0 = Path('data/mb20208/runs/all_gpu_close_more_instruments_2020_12_16/run_1')
+run_path1 = Path('data/mb20208/runs/close_detailed_more_instruments_parallax_2020-12-17-17-06-41/run_1')
+run_path0 = Path('data/mb20208/runs/wide_detailed_more_instruments_2020-12-23-17-58-22/run_1')
 
 run0 = dbc.Output(run_path0.stem, path=run_path0.parent)
 run0.load()

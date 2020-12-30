@@ -21,7 +21,7 @@ class LightCurveFileLiaison:
                                           comment='#', names=['HJD', 'Flux', 'Flux_err', 'obs id', 'mag', 'merr',
                                                               'fwhm', 'background', 'photometric scale'])
         david_bennett_data_frame = pd.DataFrame({
-            ColumnName.MICROLENSING_HJD.value: ian_bond_data_frame['HJD'] - 2450000,
+            ColumnName.TIME__MICROLENSING_HJD.value: ian_bond_data_frame['HJD'] - 2450000,
             ColumnName.FLUX.value: ian_bond_data_frame['Flux'],
             ColumnName.FLUX_ERROR.value: ian_bond_data_frame['Flux_err'],
             ColumnName.FULL_WIDTH_HALF_MAX.value: ian_bond_data_frame['fwhm']
@@ -52,7 +52,7 @@ class LightCurveFileLiaison:
                                          skipinitialspace=True)
         kmt_tlc_data_frame.columns = kmt_tlc_data_frame.columns.str.strip()  # Remove whitespace in header
         david_bennett_data_frame = pd.DataFrame({
-            ColumnName.MICROLENSING_HJD.value: kmt_tlc_data_frame['HJD'],
+            ColumnName.TIME__MICROLENSING_HJD.value: kmt_tlc_data_frame['HJD'],
             ColumnName.FLUX.value: kmt_tlc_data_frame[r'\Delta_flux'],
             ColumnName.FLUX_ERROR.value: kmt_tlc_data_frame['error'],
             ColumnName.FULL_WIDTH_HALF_MAX.value: kmt_tlc_data_frame['FWHM']
@@ -76,9 +76,9 @@ class LightCurveFileLiaison:
         lco_data_frame = pd.read_csv(lco_input_path, delim_whitespace=True,
                                      names=['hjd', 'magnification', 'magnification_error'])
         david_bennett_data_frame = pd.DataFrame({
-            ColumnName.MICROLENSING_HJD.value: lco_data_frame['hjd'] - 2450000,
-            ColumnName.MAGNIFICATION.value: lco_data_frame['magnification'],
-            ColumnName.MAGNIFICATION_ERROR.value: lco_data_frame['magnification_error']
+            ColumnName.TIME__MICROLENSING_HJD.value: lco_data_frame['hjd'] - 2450000,
+            ColumnName.MAGNITUDE.value: lco_data_frame['magnification'],
+            ColumnName.MAGNITUDE_ERROR.value: lco_data_frame['magnification_error']
         })
         return david_bennett_data_frame
 
@@ -99,12 +99,12 @@ class LightCurveFileLiaison:
                                         comment='#', usecols=[0, 1, 2],
                                         names=['microlensing_hjd', 'magnification', 'magnification_error'])
         david_bennett_data_frame = pd.DataFrame({
-            ColumnName.MICROLENSING_HJD.value: dophot_data_frame['microlensing_hjd'],
-            ColumnName.MAGNIFICATION.value: dophot_data_frame['magnification'],
-            ColumnName.MAGNIFICATION_ERROR.value: dophot_data_frame['magnification_error']
+            ColumnName.TIME__MICROLENSING_HJD.value: dophot_data_frame['microlensing_hjd'],
+            ColumnName.MAGNITUDE.value: dophot_data_frame['magnification'],
+            ColumnName.MAGNITUDE_ERROR.value: dophot_data_frame['magnification_error']
         })
         david_bennett_data_frame = david_bennett_data_frame[
-            david_bennett_data_frame[ColumnName.MAGNIFICATION.value] != 0
+            david_bennett_data_frame[ColumnName.MAGNITUDE.value] != 0
             ]
         return david_bennett_data_frame
 

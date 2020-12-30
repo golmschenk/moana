@@ -46,9 +46,9 @@ light_curve_data_frames = [moa2r_light_curve_data_frame, moa2v_light_curve_data_
                            pos_light_curve_data_frame, tur_light_curve_data_frame]
 for light_curve_data_frame in light_curve_data_frames:
     light_curve_data_frame.drop(
-        light_curve_data_frame[light_curve_data_frame[ColumnName.MICROLENSING_HJD.value] < 9050].index, inplace=True)
+        light_curve_data_frame[light_curve_data_frame[ColumnName.TIME__MICROLENSING_HJD.value] < 9050].index, inplace=True)
     light_curve_data_frame.drop(
-        light_curve_data_frame[light_curve_data_frame[ColumnName.MICROLENSING_HJD.value] > 9150].index, inplace=True)
+        light_curve_data_frame[light_curve_data_frame[ColumnName.TIME__MICROLENSING_HJD.value] > 9150].index, inplace=True)
 david_bennett_liaison.save_light_curve_to_david_bennett_format_file(
     fit_run_directory.joinpath(f'{event_light_curve_stem}.moa2r'), moa2r_light_curve_data_frame)
 david_bennett_liaison.save_light_curve_to_david_bennett_format_file(

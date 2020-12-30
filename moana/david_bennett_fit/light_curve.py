@@ -12,13 +12,13 @@ from moana.dbc import Output
 
 
 class ColumnName(Enum):
-    MICROLENSING_HJD = 'microlensing_hjd'
+    TIME__MICROLENSING_HJD = 'time_microlensing_hjd'
     FLUX = 'flux'
     FLUX_ERROR = 'flux_error'
-    MAGNIFICATION = 'magnification'
-    MAGNIFICATION_ERROR = 'magnification_error'
-    SIGNAL = 'signal'
-    SIGNAL_ERROR = 'signal_error'
+    MAGNITUDE = 'magnitude'
+    MAGNITUDE_ERROR = 'magnitude_error'
+    PHOTOMETRIC_MEASUREMENT = 'photometric_measurement'
+    PHOTOMETRIC_MEASUREMENT_ERROR = 'photometric_measurement_error'
     FULL_WIDTH_HALF_MAX = 'full_width_half_max'
 
 
@@ -39,20 +39,21 @@ class LightCurveFileLiaison:
     @classmethod
     def from_path(cls, path: Path) -> pd.DataFrame:
         light_curve_data_frame = pd.read_csv(
-            path, names=[ColumnName.MICROLENSING_HJD.value, ColumnName.SIGNAL.value, ColumnName.SIGNAL_ERROR.value],
+            path, names=[ColumnName.TIME__MICROLENSING_HJD.value, ColumnName.PHOTOMETRIC_MEASUREMENT.value,
+                         ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value],
             delim_whitespace=True, skipinitialspace=True
         )
         return light_curve_data_frame
 
     @staticmethod
     def to_path(light_curve_data_frame: pd.DataFrame, path: Path) -> None:
-        columns_to_save = [ColumnName.MICROLENSING_HJD.value]
-        if ColumnName.SIGNAL.value in light_curve_data_frame.columns:
-            columns_to_save.extend([ColumnName.SIGNAL.value, ColumnName.SIGNAL_ERROR.value])
+        columns_to_save = [ColumnName.TIME__MICROLENSING_HJD.value]
+        if ColumnName.PHOTOMETRIC_MEASUREMENT.value in light_curve_data_frame.columns:
+            columns_to_save.extend([ColumnName.PHOTOMETRIC_MEASUREMENT.value, ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value])
         elif ColumnName.FLUX.value in light_curve_data_frame.columns:
             columns_to_save.extend([ColumnName.FLUX.value, ColumnName.FLUX_ERROR.value])
-        elif ColumnName.MAGNIFICATION.value in light_curve_data_frame.columns:
-            columns_to_save.extend([ColumnName.MAGNIFICATION.value, ColumnName.MAGNIFICATION_ERROR.value])
+        elif ColumnName.MAGNITUDE.value in light_curve_data_frame.columns:
+            columns_to_save.extend([ColumnName.MAGNITUDE.value, ColumnName.MAGNITUDE_ERROR.value])
         else:
             raise ValueError('Light curve did not conform to a known type.')
         light_curve_data_frame.to_csv(path, header=False, columns=columns_to_save, index=False, sep=' ')
@@ -93,7 +94,7 @@ class LightCurveFileLiaison:
         light_curve_data_frame = cls.from_path(light_curve_path)
         instrument_suffix = light_curve_path.suffix[1:]
         light_curve_residual_data_frame = run_residual_data_frame[run_residual_data_frame['sfx'] == instrument_suffix]
-        assert np.allclose(light_curve_data_frame[ColumnName.MICROLENSING_HJD.value],
+        assert np.allclose(light_curve_data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
                            light_curve_residual_data_frame['date'])
         light_curve_data_frame['fit_chi_squared'] = light_curve_residual_data_frame['chi2']
         return light_curve_data_frame
@@ -106,3 +107,4 @@ class LightCurveFileLiaison:
             light_curve_data_frame['fit_chi_squared'] < chi_squared_limit]
         cls.to_path(updated_light_curve_data_frame, updated_light_curve_path)
         return light_curve_data_frame['fit_chi_squared'].mean()
+
