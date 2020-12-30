@@ -1,13 +1,14 @@
 """
 Code for working with David Bennett's light curve format.
 """
-import re
-from enum import Enum
-from typing import Optional
+from __future__ import annotations
 
+import re
 import numpy as np
 import pandas as pd
 from io import StringIO
+from enum import Enum
+from typing import Optional
 from pathlib import Path
 
 from moana.dbc import Output
@@ -24,12 +25,17 @@ class ColumnName(Enum):
     FULL_WIDTH_HALF_MAX = 'full_width_half_max'
 
 
+class FitModelColumnName(Enum):
+    CHI_SQUARED = 'chi_squared'
+
+
 class LightCurve:
     """
     A class for working with David Bennett's light curve format.
     """
-    def __init__(self):
-        self.data_frame: Optional[pd.DataFrame] = None
+    def __init__(self, instrument_suffix: str, data_frame: pd.DataFrame):
+        self.instrument_suffix: str = instrument_suffix
+        self.data_frame: pd.DataFrame = data_frame
 
     @staticmethod
     def save_light_curve_to_david_bennett_format_file(path, light_curve_data_frame):
@@ -42,30 +48,31 @@ class LightCurve:
         light_curve_data_frame.to_csv(path, header=False, index=False, sep=' ')
 
     @classmethod
-    def from_path(cls, path: Path) -> pd.DataFrame:
+    def from_path(cls, path: Path) -> LightCurve:
+        instrument_suffix = path.suffix[1:]
         light_curve_data_frame = pd.read_csv(
             path, names=[ColumnName.TIME__MICROLENSING_HJD.value, ColumnName.PHOTOMETRIC_MEASUREMENT.value,
                          ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value],
             delim_whitespace=True, skipinitialspace=True
         )
-        return light_curve_data_frame
+        light_curve = cls(instrument_suffix, light_curve_data_frame)
+        light_curve.data_frame = light_curve_data_frame
+        return light_curve
 
-    @staticmethod
-    def to_path(light_curve_data_frame: pd.DataFrame, path: Path) -> None:
+    def to_path(self, path: Path) -> None:
         columns_to_save = [ColumnName.TIME__MICROLENSING_HJD.value]
-        if ColumnName.PHOTOMETRIC_MEASUREMENT.value in light_curve_data_frame.columns:
+        if ColumnName.PHOTOMETRIC_MEASUREMENT.value in self.data_frame.columns:
             columns_to_save.extend([ColumnName.PHOTOMETRIC_MEASUREMENT.value, ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value])
-        elif ColumnName.FLUX.value in light_curve_data_frame.columns:
+        elif ColumnName.FLUX.value in self.data_frame.columns:
             columns_to_save.extend([ColumnName.FLUX.value, ColumnName.FLUX_ERROR.value])
-        elif ColumnName.MAGNITUDE.value in light_curve_data_frame.columns:
+        elif ColumnName.MAGNITUDE.value in self.data_frame.columns:
             columns_to_save.extend([ColumnName.MAGNITUDE.value, ColumnName.MAGNITUDE_ERROR.value])
         else:
             raise ValueError('Light curve did not conform to a known type.')
-        light_curve_data_frame.to_csv(path, header=False, columns=columns_to_save, index=False, sep=' ')
+        self.data_frame.to_csv(path, header=False, columns=columns_to_save, index=False, sep=' ')
 
     @staticmethod
-    def load_normalization_parameters_from_residual_file(residual_path: Path
-                                                         ) -> pd.Series:
+    def load_normalization_parameters_from_residual_file(residual_path: Path) -> pd.Series:
         """
         Load the light curve magnification normalization parameters from a residual file.
 
@@ -92,26 +99,23 @@ class LightCurve:
         return parameter_series
 
     @classmethod
-    def from_path_with_residuals_from_run(cls, light_curve_path: Path, run_path: Path):
+    def from_path_with_residuals_from_run(cls, light_curve_path: Path, run_path: Optional[Path] = None) -> LightCurve:
+        if run_path is None:
+            run_path = light_curve_path.parent.joinpath('run_1')
         run = Output(run_path.name, str(run_path.parent))
         run.load()
         run_residual_data_frame = run.resid
-        light_curve_data_frame = cls.from_path(light_curve_path)
+        light_curve = cls.from_path(light_curve_path)
         instrument_suffix = light_curve_path.suffix[1:]
         light_curve_residual_data_frame = run_residual_data_frame[run_residual_data_frame['sfx'] == instrument_suffix]
-        assert np.allclose(light_curve_data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
+        assert np.allclose(light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
                            light_curve_residual_data_frame['date'])
-        light_curve_data_frame['fit_chi_squared'] = light_curve_residual_data_frame['chi2']
-        return light_curve_data_frame
+        light_curve.data_frame[FitModelColumnName.CHI_SQUARED.value] = light_curve_residual_data_frame['chi2']
+        return light_curve
 
-    @classmethod
-    def remove_data_points_by_chi_squared_limit(cls, light_curve_path: Path, run_path: Path,
-                                                updated_light_curve_path: Path, chi_squared_limit: float = 16) -> float:
-        light_curve_data_frame = cls.from_path_with_residuals_from_run(light_curve_path, run_path)
-        updated_light_curve_data_frame = light_curve_data_frame[
-            light_curve_data_frame['fit_chi_squared'] < chi_squared_limit]
-        cls.to_path(updated_light_curve_data_frame, updated_light_curve_path)
-        return light_curve_data_frame['fit_chi_squared'].mean()
+    def remove_data_points_by_chi_squared_limit(self, chi_squared_limit: float = 16) -> float:
+        self.data_frame = self.data_frame[self.data_frame[FitModelColumnName.CHI_SQUARED.value] < chi_squared_limit]
+        return self.data_frame[FitModelColumnName.CHI_SQUARED.value].mean()
 
     def remove_data_points_by_error_relative_to_maximum_minimum_range(self, threshold: float = 0.1):
         maximum_measurement = self.data_frame[ColumnName.PHOTOMETRIC_MEASUREMENT.value].max()
