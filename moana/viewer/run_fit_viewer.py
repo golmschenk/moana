@@ -18,7 +18,7 @@ from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
 
 
-class LightCurveViewer:
+class RunFitViewer:
     @staticmethod
     def add_light_curve_points_with_errors_to_figure(figure: Figure, light_curve_data_frame: pd.DataFrame, name: str,
                                                      color: Color, y_column_name='magnification'):
@@ -58,11 +58,11 @@ class LightCurveViewer:
     def add_instrument_data_points_of_run_to_light_curve_and_residual_figures(self, run: Output,
                                                                               light_curve_figure: Figure,
                                                                               residual_figure: Figure):
-        self.add_instrument_data_points_of_run_to_figure(run, light_curve_figure)
-        self.add_instrument_data_points_of_run_to_figure(run, residual_figure, y_column_name='magnification_residual')
+        self.add_all_instruments_data_points_of_run_to_figure(run, light_curve_figure)
+        self.add_all_instruments_data_points_of_run_to_figure(run, residual_figure, y_column_name='magnification_residual')
 
-    def add_instrument_data_points_of_run_to_figure(self, run: Output, figure: Figure,
-                                                    y_column_name: str = 'magnification'):
+    def add_all_instruments_data_points_of_run_to_figure(self, run: Output, figure: Figure,
+                                                         y_column_name: str = 'magnification'):
         instrument_suffixes = sorted(run.resid['sfx'].unique())
         for instrument_suffix in instrument_suffixes:
             color_mapper = ColorMapper()
@@ -115,8 +115,8 @@ class LightCurveViewer:
         run1 = self.reverse_scale_and_shift_run(run1, scale, shift)
         self.add_instrument_data_points_of_run_to_light_curve_and_residual_figures(run0, light_curve_figure,
                                                                                    residual_figure0)
-        self.add_instrument_data_points_of_run_to_figure(run1, residual_figure1,
-                                                         y_column_name='magnification_residual')
+        self.add_all_instruments_data_points_of_run_to_figure(run1, residual_figure1,
+                                                              y_column_name='magnification_residual')
         self.add_fit_of_run_to_light_curve_and_residual_figures(run1, light_curve_figure, residual_figure1)
         self.add_fit_of_run_to_light_curve_and_residual_figures(run0, light_curve_figure, residual_figure0)
         residual_figure0.legend.visible = False
@@ -157,9 +157,8 @@ class LightCurveViewer:
         run_path1 = Path(run1.path)
         residual_path0 = run_path0.joinpath(f'resid.{run0.run}')
         residual_path1 = run_path1.joinpath(f'resid.{run1.run}')
-        liaison = LightCurve()
-        parameter_series0 = liaison.load_normalization_parameters_from_residual_file(residual_path0)
-        parameter_series1 = liaison.load_normalization_parameters_from_residual_file(residual_path1)
+        parameter_series0 = LightCurve.load_normalization_parameters_from_residual_file(residual_path0)
+        parameter_series1 = LightCurve.load_normalization_parameters_from_residual_file(residual_path1)
         parameter_data_frame = pd.DataFrame([parameter_series0, parameter_series1]).reset_index(drop=True)
         parameter_data_frame = parameter_data_frame.dropna(axis=1)
         scale_parameter_data_frame = parameter_data_frame.filter(regex=r'^A0.*')

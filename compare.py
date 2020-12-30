@@ -6,7 +6,7 @@ from moana.viewer.caustic_crossing_viewer import CausticCrossingViewer
 from moana.viewer.caustic_topology_viewer import CausticTopologyViewer
 
 from moana.viewer.run_modifier import RunModifier
-from moana.viewer.light_curve_viewer import LightCurveViewer
+from moana.viewer.run_fit_viewer import RunFitViewer
 
 run_path1 = Path('data/mb20208/runs/close_detailed_more_instruments_parallax_2020-12-17-17-06-41/run_1')
 run_path0 = Path('data/mb20208/runs/wide_detailed_more_instruments_2020-12-23-17-58-22/run_1')
@@ -20,7 +20,7 @@ run_modifier = RunModifier()
 run_modifier.limit_date_range(run0, 9075, 9125)
 run_modifier.limit_date_range(run1, 9075, 9125)
 
-viewer = LightCurveViewer()
+viewer = RunFitViewer()
 parameter_comparison_table = viewer.create_run_parameter_comparison_table(run_path0, run_path1)
 left_comparison_view = viewer.create_comparison_view(run0, run1)
 right_comparison_view = viewer.create_comparison_view(run0, run1)

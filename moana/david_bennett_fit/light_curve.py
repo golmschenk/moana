@@ -71,8 +71,8 @@ class LightCurve:
             raise ValueError('Light curve did not conform to a known type.')
         self.data_frame.to_csv(path, header=False, columns=columns_to_save, index=False, sep=' ')
 
-    @staticmethod
-    def load_normalization_parameters_from_residual_file(residual_path: Path) -> pd.Series:
+    @classmethod
+    def load_normalization_parameters_from_residual_file(cls, residual_path: Path) -> pd.Series:
         """
         Load the light curve magnification normalization parameters from a residual file.
 
