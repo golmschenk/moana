@@ -1,46 +1,21 @@
 import copy
-import itertools
-import random
 import re
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from bokeh import palettes
-from bokeh.colors import Color
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Whisker, Row, Box, DataTable, TableColumn, ScientificFormatter
+from bokeh.models import ColumnDataSource, Box, DataTable, TableColumn, ScientificFormatter
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana import dbc
-from moana.david_bennett_fit.light_curve import LightCurve
+from moana.david_bennett_fit.light_curve import LightCurve, ColumnName
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
+from moana.viewer.light_curve_viewer import LightCurveViewer
 
 
 class RunFitViewer:
-    @staticmethod
-    def add_light_curve_points_with_errors_to_figure(figure: Figure, light_curve_data_frame: pd.DataFrame, name: str,
-                                                     color: Color, y_column_name='magnification'):
-        light_curve_data_frame = light_curve_data_frame.copy()
-        light_curve_data_frame['plus_error'] = light_curve_data_frame[y_column_name
-                                               ] + light_curve_data_frame['magnification_error']
-        light_curve_data_frame['minus_error'] = light_curve_data_frame[y_column_name
-                                                ] - light_curve_data_frame['magnification_error']
-        source = ColumnDataSource(light_curve_data_frame)
-        line_alpha = 0.8
-        fill_alpha = 0.2
-        circle_renderer = figure.circle(source=source, x='microlensing_hjd', y=y_column_name, legend_label=name,
-                                        color=color, line_alpha=line_alpha, fill_alpha=fill_alpha)
-        whisker = Whisker(source=source, base='microlensing_hjd', upper='plus_error',
-                          lower='minus_error', line_alpha=line_alpha,
-                          line_color=circle_renderer.glyph.fill_color)
-        whisker.upper_head.line_color = circle_renderer.glyph.fill_color
-        whisker.upper_head.line_alpha = line_alpha
-        whisker.lower_head.line_color = circle_renderer.glyph.fill_color
-        whisker.lower_head.line_alpha = line_alpha
-        figure.add_layout(whisker)
-
     @staticmethod
     def extract_instrument_specific_light_curve_data_frame(moana_data_frame: pd.DataFrame, instrument_suffix: str
                                                            ) -> pd.DataFrame:
@@ -49,7 +24,7 @@ class RunFitViewer:
         magnification = moana_data_frame.loc[mask, 'mgf_data']
         magnification_error = moana_data_frame.loc[mask, 'sig_mgf']
         magnification_residual = moana_data_frame.loc[mask, 'res_mgf']
-        light_curve_data_frame = pd.DataFrame({'microlensing_hjd': microlensing_hjd,
+        light_curve_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: microlensing_hjd,
                                                'magnification': magnification,
                                                'magnification_error': magnification_error,
                                                'magnification_residual': magnification_residual})
@@ -59,7 +34,8 @@ class RunFitViewer:
                                                                               light_curve_figure: Figure,
                                                                               residual_figure: Figure):
         self.add_all_instruments_data_points_of_run_to_figure(run, light_curve_figure)
-        self.add_all_instruments_data_points_of_run_to_figure(run, residual_figure, y_column_name='magnification_residual')
+        self.add_all_instruments_data_points_of_run_to_figure(run, residual_figure,
+                                                              y_column_name='magnification_residual')
 
     def add_all_instruments_data_points_of_run_to_figure(self, run: Output, figure: Figure,
                                                          y_column_name: str = 'magnification'):
@@ -69,8 +45,8 @@ class RunFitViewer:
             instrument_color = color_mapper.get_instrument_color(instrument_suffix)
             instrument_data_frame = self.extract_instrument_specific_light_curve_data_frame(run.resid,
                                                                                             instrument_suffix)
-            self.add_light_curve_points_with_errors_to_figure(figure, instrument_data_frame, instrument_suffix,
-                                                              instrument_color, y_column_name)
+            LightCurveViewer.add_light_curve_points_with_errors_to_figure(
+                figure, instrument_data_frame, instrument_suffix, instrument_color, y_column_name)
 
     def add_fit_of_run_to_light_curve_and_residual_figures(self, run: Output, light_curve_figure: Figure,
                                                            residual_figure: Figure):
@@ -82,17 +58,18 @@ class RunFitViewer:
         fit_color = color_mapper.get_fit_color(run_name)
         fit_times = run.fitlc['date']
         fit_magnifications = run.fitlc['mgf']
-        fit_data_frame = pd.DataFrame({'microlensing_hjd': fit_times, 'magnification': fit_magnifications})
+        fit_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: fit_times,
+                                       'magnification': fit_magnifications})
         fit_data_source = ColumnDataSource(fit_data_frame)
-        light_curve_figure.line(source=fit_data_source, x='microlensing_hjd', y='magnification', legend_label=run_name,
-                                line_color=fit_color, line_width=2)
+        light_curve_figure.line(source=fit_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value, y='magnification',
+                                legend_label=run_name, line_color=fit_color, line_width=2)
 
         residual_baseline_times = [fit_times.min(), fit_times.max()]
         residual_baseline_values = [0, 0]
-        residual_guide_data_frame = pd.DataFrame({'microlensing_hjd': residual_baseline_times,
+        residual_guide_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: residual_baseline_times,
                                                   'residual': residual_baseline_values})
         residual_guide_data_source = ColumnDataSource(residual_guide_data_frame)
-        residual_figure.line(source=residual_guide_data_source, x='microlensing_hjd', y='residual',
+        residual_figure.line(source=residual_guide_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value, y='residual',
                              line_color=fit_color, line_width=2, legend_label=run_name)
 
     def create_comparison_view_components(self):

@@ -15,7 +15,7 @@ from moana.dbc import Output
 
 
 class ColumnName(Enum):
-    TIME__MICROLENSING_HJD = 'time_microlensing_hjd'
+    TIME__MICROLENSING_HJD = 'time__microlensing_hjd'
     FLUX = 'flux'
     FLUX_ERROR = 'flux_error'
     MAGNITUDE = 'magnitude'
@@ -27,6 +27,9 @@ class ColumnName(Enum):
 
 class FitModelColumnName(Enum):
     CHI_SQUARED = 'chi_squared'
+    MAGNIFICATION = 'magnification'
+    MAGNIFICATION_ERROR = 'magnification_error'
+    MAGNIFICATION_RESIDUAL = 'magnification_residual'
 
 
 class LightCurve:
@@ -53,7 +56,7 @@ class LightCurve:
         light_curve_data_frame = pd.read_csv(
             path, names=[ColumnName.TIME__MICROLENSING_HJD.value, ColumnName.PHOTOMETRIC_MEASUREMENT.value,
                          ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value],
-            delim_whitespace=True, skipinitialspace=True
+            delim_whitespace=True, skipinitialspace=True, index_col=False
         )
         light_curve = cls(instrument_suffix, light_curve_data_frame)
         light_curve.data_frame = light_curve_data_frame
@@ -111,6 +114,11 @@ class LightCurve:
         assert np.allclose(light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
                            light_curve_residual_data_frame['date'])
         light_curve.data_frame[FitModelColumnName.CHI_SQUARED.value] = light_curve_residual_data_frame['chi2']
+        light_curve.data_frame[FitModelColumnName.MAGNIFICATION.value] = light_curve_residual_data_frame['mgf_data']
+        light_curve.data_frame[
+            FitModelColumnName.MAGNIFICATION_ERROR.value] = light_curve_residual_data_frame['sig_mgf']
+        light_curve.data_frame[
+            FitModelColumnName.MAGNIFICATION_RESIDUAL.value] = light_curve_residual_data_frame['res_mgf']
         return light_curve
 
     def remove_data_points_by_chi_squared_limit(self, chi_squared_limit: float = 16) -> float:
