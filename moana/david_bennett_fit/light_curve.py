@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from io import StringIO
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 from pathlib import Path
 
 from moana.dbc import Output
@@ -132,3 +132,12 @@ class LightCurve:
         absolute_threshold = difference * threshold
         self.data_frame = self.data_frame[
             self.data_frame[ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value] < absolute_threshold]
+
+    @classmethod
+    def dictionary_for_run_directory_with_residuals(cls, directory_path: Path) -> List[LightCurve]:
+        light_curve_paths = directory_path.glob('lc*')
+        light_curves = []
+        for light_curve_path in light_curve_paths:
+            light_curve = cls.from_path_with_residuals_from_run(light_curve_path)
+            light_curves.append(light_curve)
+        return light_curves
