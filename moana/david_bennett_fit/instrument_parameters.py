@@ -3,14 +3,16 @@ Code for representing instrument (telescope) parameters used in David Bennett's 
 """
 from __future__ import annotations
 
+import itertools
 import re
 from io import StringIO
 import pandas as pd
 from enum import Enum
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 from astropy.coordinates import EarthLocation
+from tabulate import tabulate
 
 
 class MeasurementType(Enum):
@@ -90,3 +92,67 @@ class InstrumentParameters:
             return MeasurementType.FLUX
         else:
             NotImplementedError(f'Instrument measurement type index (`jclr`) is not implemented for index {index}.')
+
+    @classmethod
+    def david_bennett_parameter_file_string_from_list(cls, instrument_parameters_list: List[InstrumentParameters]
+                                                      ) -> str:
+        measurement_type_index_generators = {
+            MeasurementType.MAGNITUDE_0_BASED: iter(range(9, 15)),
+            MeasurementType.MAGNITUDE_21_BASED: itertools.chain(range(15, 30), range(40, 50)),
+            MeasurementType.FLUX: itertools.chain(range(30, 40), range(50, 60))
+        }
+        instrument_parameters_dictionary_list = []
+        for instrument_parameters in instrument_parameters_list:
+            measurement_type_index = next(measurement_type_index_generators[instrument_parameters.measurement_type])
+            if instrument_parameters.earth_location is not None:
+                longitude = instrument_parameters.earth_location.lon.to_string(decimal=True)
+                latitude = instrument_parameters.earth_location.lat.to_string(decimal=True)
+            else:
+                longitude = None
+                latitude = None
+            instrument_parameters_dictionary_list.append({
+                'measurement_type_index': measurement_type_index,
+                'fudge_factor': instrument_parameters.fudge_factor,
+                'error_minimum': 0.003,
+                'flux_minimum': -1.e9,
+                'flux_maximum': 1.e9,
+                'limb_darkening_a': 0.0,
+                'limb_darkening_b': 0.0,
+                'time_offset': instrument_parameters.time_offset,
+                'suffix': instrument_parameters.suffix,
+                'longitude': longitude,
+                'latitude': latitude,
+            })
+        parameter_data_frame = pd.DataFrame(instrument_parameters_dictionary_list)
+        parameter_data_frame = parameter_data_frame.astype({
+            'measurement_type_index': int,
+            'fudge_factor': float,
+            'error_minimum': float,
+            'flux_minimum': float,
+            'flux_maximum': float,
+            'limb_darkening_a': float,
+            'limb_darkening_b': float,
+            'time_offset': float,
+            'suffix': str,
+            'longitude': float,
+            'latitude': float,
+        })
+        parameter_data_frame = parameter_data_frame.rename(columns={
+            'measurement_type_index': 'jclr',
+            'fudge_factor': 'fudge',
+            'error_minimum': 'errmin',
+            'flux_minimum': 'fmin',
+            'flux_maximum': 'fmax',
+            'limb_darkening_a': 'ald',
+            'limb_darkening_b': 'bld',
+            'time_offset': 'dayoff',
+            'suffix': 'sfx',
+        })
+        list_of_lists = parameter_data_frame.values.tolist()
+        # noinspection PyTypeChecker
+        list_of_lists = [[element for element in list_ if pd.notna(element)] for list_ in list_of_lists]
+        file_string = tabulate(list_of_lists, tablefmt='plain', floatfmt='.10', headers=parameter_data_frame.columns)
+        file_string = '# ' + file_string
+        file_string = file_string.replace('\n', '\n  ')
+        file_string = file_string.replace('longitude', '').replace('latitude', '')
+        return file_string

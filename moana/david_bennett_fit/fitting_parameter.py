@@ -2,7 +2,7 @@ from enum import Enum
 
 
 # noinspection SpellCheckingInspection
-class FittingParameterName(Enum):
+class FittingAlgorithmParameterName(Enum):
     # TODO: These need better names
     DAY_CAUS_MIN = 'daycausmin'
     DAY_CAUS_MAX = 'daycausmax'

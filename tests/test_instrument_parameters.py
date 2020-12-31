@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -68,3 +69,16 @@ class TestInstrumentParameters:
             assert instrument_parameters_dictionary['moa2r'].earth_location == EarthLocation.from_geodetic(
                 lon=170.465, lat=-43.9867)
             assert instrument_parameters_dictionary['moa2r'].fudge_factor == 1.5
+
+    def test_can_create_david_bennett_input_string_from_parameters_dictionary(self):
+        instrument_parameters_list = [
+            InstrumentParameters('moa2r', MeasurementType.FLUX),
+            InstrumentParameters('moa2v', MeasurementType.FLUX, fudge_factor=1.2,
+                                 earth_location=EarthLocation.from_geodetic(lon=170.465, lat=-43.9867)),
+            InstrumentParameters('pest', MeasurementType.MAGNITUDE_21_BASED, fudge_factor=1.5)
+        ]
+        parameter_file_string = InstrumentParameters.david_bennett_parameter_file_string_from_list(
+            instrument_parameters_list)
+        assert re.search(r"30\s+1.0[^\n]+'moa2r'\n", parameter_file_string)
+        assert re.search(r"31\s+1.2[^\n]+'moa2v'\s+170\.465\s+-43\.9867\n", parameter_file_string)
+        assert re.search(r"15\s+1.5[^\n]+'pest'\n", parameter_file_string)
