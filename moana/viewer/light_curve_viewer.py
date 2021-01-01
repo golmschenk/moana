@@ -3,7 +3,7 @@ from bokeh.colors import Color
 from bokeh.models import ColumnDataSource, Whisker
 from bokeh.plotting import Figure
 
-from moana.david_bennett_fit.light_curve import LightCurve, ColumnName, FitModelColumnName
+from moana.light_curve import LightCurve, ColumnName, FitModelColumnName
 from moana.viewer.color_mapper import ColorMapper
 
 

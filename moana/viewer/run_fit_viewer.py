@@ -9,7 +9,7 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana import dbc
-from moana.david_bennett_fit.light_curve import LightCurve, ColumnName
+from moana.light_curve import LightCurve, ColumnName
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
 from moana.viewer.light_curve_viewer import LightCurveViewer

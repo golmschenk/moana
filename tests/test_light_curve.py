@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from moana.david_bennett_fit.light_curve import LightCurve, ColumnName
+from moana.light_curve import LightCurve, ColumnName
 
 
 class TestLightCurve:

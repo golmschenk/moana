@@ -4,9 +4,9 @@ import pandas as pd
 from pathlib import Path
 
 from moana.david_bennett_fit.runner import DavidBennettFitRunner
-from moana.david_bennett_fit.lens_model_parameter import LensModelParameter, LensModelParameterName
+from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
 from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiaison
-from moana.david_bennett_fit.light_curve import LightCurve as LightCurve, ColumnName
+from moana.light_curve import LightCurve as LightCurve, ColumnName
 
 print('Fitting script started.', flush=True)
 
