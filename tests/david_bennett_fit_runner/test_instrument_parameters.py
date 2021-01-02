@@ -1,14 +1,11 @@
 import re
 from pathlib import Path
 from unittest.mock import Mock, patch
-
-import pytest
-
-# noinspection SpellCheckingInspection
 from astropy.coordinates import EarthLocation
 
 from moana.david_bennett_fit.instrument_parameters import InstrumentParameters, MeasurementType
 
+# noinspection SpellCheckingInspection
 fake_david_bennett_parameter_file_content_lines = [
     "# daycausmin   daycausmax   deltcaus  delfine   gridUstar   hcut   iend    grid_rat\n",
     "  9075.0       9125.0         0.002    0.002     0.01       0.15    2      1.00\n",
