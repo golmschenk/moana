@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from moana.david_bennett_fit.fitting_parameter import FittingAlgorithmParameters
+from moana.david_bennett_fit.fitting_parameters import FittingAlgorithmParameters
 
 
 # noinspection SpellCheckingInspection
@@ -26,15 +26,17 @@ class TestFittingAlgorithmParameters:
             assert fitting_algorithm_parameters.h_cut == 0.15
 
     def test_can_create_david_bennett_input_string_from_parameters_dictionary(self):
-        assert False  # TODO: Finish test.
-        # instrument_parameters_list = [
-        #     InstrumentParameters('moa2r', MeasurementType.FLUX),
-        #     InstrumentParameters('moa2v', MeasurementType.FLUX, fudge_factor=1.2,
-        #                          earth_location=EarthLocation.from_geodetic(lon=170.465, lat=-43.9867)),
-        #     InstrumentParameters('pest', MeasurementType.MAGNITUDE_21_BASED, fudge_factor=1.5)
-        # ]
-        # parameter_file_string = InstrumentParameters.david_bennett_parameter_file_string_from_list(
-        #     instrument_parameters_list)
-        # assert re.search(r"30\s+1.0[^\n]+'moa2r'\n", parameter_file_string)
-        # assert re.search(r"31\s+1.2[^\n]+'moa2v'\s+170\.465\s+-43\.9867\n", parameter_file_string)
-        # assert re.search(r"15\s+1.5[^\n]+'pest'\n", parameter_file_string)
+        fitting_algorithm_parameters = FittingAlgorithmParameters(
+            detailed_time_step_start=9075.0,
+            detailed_time_step_end=9125.0,
+            delt_caus=0.002,
+            del_fine=0.002,
+            integration_grid_radial_step_size=0.01,
+            h_cut=0.15,
+            i_end=2,
+            integration_grid_radial_to_angular_ratio=1.0
+        )
+        parameter_file_string = fitting_algorithm_parameters.to_david_bennett_parameter_file_string()
+        assert re.search(r"#\s+daycausmin\s+daycausmax\s+deltcaus\s+delfine\s+gridUstar\s+hcut\s+iend\s+grid_rat\n",
+                         parameter_file_string)
+        assert re.search(r"9075.0\s+9125.0\s+0.002\s+0.002\s+0.01\s+0.15\s+2\s+1.0", parameter_file_string)

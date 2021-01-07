@@ -9,6 +9,9 @@ from typing import Union, Dict
 
 
 # noinspection SpellCheckingInspection
+from tabulate import tabulate
+
+
 class FittingAlgorithmParameterName(Enum):
     # TODO: These need better names
     DETAILED_TIME_STEP_START = 'daycausmin'
@@ -47,7 +50,7 @@ class FittingAlgorithmParameters:
         fitting_algorithm_parameter_lines = []
         while re.search(r'#\s+jclr', parameter_file_lines[0]) is None:  # If we haven't reached the second header...
             parameter_line = parameter_file_lines.pop(0)  # Get the next line.
-            parameter_line = re.sub(r'^\s*#\s*(day.*)', r'\g<1>', parameter_line)
+            parameter_line = re.sub(r'^\s*#\s*(day.*)', r'\g<1>', parameter_line)  # Remove the `#` from the header.
             fitting_algorithm_parameter_lines.append(parameter_line)  # Add the line.
         parameters_content_string = ''.join(fitting_algorithm_parameter_lines)
         parameters_string_io = StringIO(parameters_content_string)
@@ -74,23 +77,21 @@ class FittingAlgorithmParameters:
         return fitting_algorithm_parameters
 
     def to_david_bennett_parameter_file_string(self) -> str:
-        assert False  # TODO: Finish
-        available_names = [name.value for name in LensModelParameterName]
-        for key in parameter_dictionary.keys():
-            assert key in available_names
-        parameter_dictionary_list = []
-        for index, name in enumerate(available_names):
-            parameter_dictionary_list.append({'index': index + 1, 'name': f"'{name}'",
-                                              'value': parameter_dictionary[name].value,
-                                              'temperature': parameter_dictionary[name].temperature,
-                                              'minimum_limit': parameter_dictionary[name].minimum_limit,
-                                              'maximum_limit': parameter_dictionary[name].maximum_limit})
-        parameter_data_frame = pd.DataFrame(parameter_dictionary_list)
-        parameter_data_frame = parameter_data_frame.astype({'index': int, 'name': str, 'value': float,
-                                                            'temperature': float, 'minimum_limit': float,
-                                                            'maximum_limit': float})
-        list_of_lists = parameter_data_frame.values.tolist()
-        # noinspection PyTypeChecker
-        list_of_lists = [[element for element in list_ if pd.notna(element)] for list_ in list_of_lists]
-        input_string = tabulate(list_of_lists, tablefmt='plain', floatfmt='.10')
-        return input_string
+        parameter_dictionary = {
+            FittingAlgorithmParameterName.DETAILED_TIME_STEP_START.value: self.detailed_time_step_start,
+            FittingAlgorithmParameterName.DETAILED_TIME_STEP_END.value: self.detailed_time_step_end,
+            FittingAlgorithmParameterName.DELT_CAUS.value: self.delt_caus,
+            FittingAlgorithmParameterName.DEL_FINE.value: self.del_fine,
+            FittingAlgorithmParameterName.INTEGRATION_GRID_RADIAL_STEP_SIZE.value:
+                self.integration_grid_radial_step_size,
+            FittingAlgorithmParameterName.H_CUT.value: self.h_cut,
+            FittingAlgorithmParameterName.I_END.value: self.i_end,
+            FittingAlgorithmParameterName.INTEGRATION_GRID_RADIAL_TO_ANGULAR_RATIO.value:
+                self.integration_grid_radial_to_angular_ratio
+        }
+        parameter_list_dictionary = {key: [value] for key, value in parameter_dictionary.items()}
+        file_string = tabulate(parameter_list_dictionary, tablefmt='plain', floatfmt='.10',
+                               headers=parameter_list_dictionary.keys(), showindex=False)
+        file_string = '# ' + file_string
+        file_string = file_string.replace('\n', '\n  ')
+        return file_string
