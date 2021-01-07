@@ -15,7 +15,7 @@ print('Fitting script started.', flush=True)
 run_to_continue = Path('data/mb20208/runs/close_detailed_moa_2020-12-28-16-00-33')
 
 match = re.match(r'(.*)_[\d\-]+', run_to_continue.name)
-fit_run_name = f'{match.group(1)}_check'
+fit_run_name = f'{match.group(1)}_mcmc_check'
 datetime_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 fit_run_directory = Path(f'data/mb20208/runs/{fit_run_name}_{datetime_string}')
 fit_run_directory.mkdir(exist_ok=True, parents=True)
@@ -35,7 +35,6 @@ for light_curve in light_curves:
     light_curve.remove_data_points_by_error_relative_to_maximum_minimum_range()
     light_curve.remove_data_points_by_chi_squared_limit()
     light_curve.data_frame = pd.concat([light_curve.data_frame, planetary_event_data_frame]).drop_duplicates()
-LightCurve.save_list_to_directory(light_curves, fit_run_directory)
 
 lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
     run_to_continue.joinpath('run_2.in')
@@ -47,7 +46,7 @@ david_bennett_fit_runner = DavidBennettFitRunner(fit_run_directory=fit_run_direc
                                                  lens_model_parameter_dictionary=lens_model_parameter_dictionary,
                                                  light_curve_with_instrument_parameters_list=light_curves,
                                                  fitting_algorithm_parameters=fitting_algorithm_parameters)
-david_bennett_fit_runner.generate_configuration_files()
+david_bennett_fit_runner.generate_run_files()
 
 print(f'Running `{fit_run_directory}` started at {datetime.datetime.now()}...', flush=True)
 david_bennett_fit_runner.run()
