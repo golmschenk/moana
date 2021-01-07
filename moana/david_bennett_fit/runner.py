@@ -5,18 +5,26 @@ import shutil
 import datetime
 import subprocess
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
+from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorithmParameters
+from moana.david_bennett_fit.instrument_parameters import InstrumentParameters
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
+from moana.david_bennett_fit.light_curve_with_instrument_parameters import LightCurveWithInstrumentParameters
 
 
 class DavidBennettFitRunner:
     """
     A class to manage fitting runs using David Bennett's code.
     """
-    def __init__(self, fit_run_directory: Path, lens_model_parameter_dictionary: Dict[str, LensModelParameter]):
-        self.fit_run_directory = fit_run_directory
-        self.lens_model_parameter_dictionary = lens_model_parameter_dictionary
+    def __init__(self, fit_run_directory: Path, lens_model_parameter_dictionary: Dict[str, LensModelParameter],
+                 light_curve_with_instrument_parameters_list: List[LightCurveWithInstrumentParameters],
+                 fitting_algorithm_parameters: FittingAlgorithmParameters):
+        self.fit_run_directory: Path = fit_run_directory
+        self.lens_model_parameter_dictionary: Dict[str, LensModelParameter] = lens_model_parameter_dictionary
+        self.light_curve_with_instrument_parameters_list:List[LightCurveWithInstrumentParameters] = \
+            light_curve_with_instrument_parameters_list
+        self.fitting_algorithm_parameters: FittingAlgorithmParameters = fitting_algorithm_parameters
 
     def generate_configuration_files(self):
         """
@@ -29,9 +37,14 @@ class DavidBennettFitRunner:
         self.generate_david_bennett_run_input_file()
 
     def generate_david_bennett_parameter_file(self):
-        existing_parameter_file = Path('data/mb20208/template/parMB20208')
-        shutil.copy(existing_parameter_file, self.fit_run_directory.joinpath('parMB20208'))
-        # TODO: Generate this from script variables rather than just copying an existing one.
+        parameter_file_path = self.fit_run_directory.joinpath('parMB20208')
+        with open(parameter_file_path, 'w') as parameter_file:
+            parameter_file.write(self.fitting_algorithm_parameters.to_david_bennett_parameter_file_string())
+            parameter_file.write('\n')
+            instrument_parameters_list = [light_curve.instrument_parameters
+                                          for light_curve in self.light_curve_with_instrument_parameters_list]
+            parameter_file.write(
+                InstrumentParameters.david_bennett_parameter_file_string_from_list(instrument_parameters_list))
 
     def generate_david_bennett_run_input_file(self):
         datetime_string = datetime.datetime.now()

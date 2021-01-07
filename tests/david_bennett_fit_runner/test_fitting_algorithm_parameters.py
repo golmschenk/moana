@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from moana.david_bennett_fit.fitting_parameters import FittingAlgorithmParameters
+from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorithmParameters
 
 
 # noinspection SpellCheckingInspection
