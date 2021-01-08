@@ -1,4 +1,5 @@
 import datetime
+import math
 import re
 import pandas as pd
 from pathlib import Path
@@ -12,10 +13,10 @@ from moana.light_curve import LightCurve as LightCurve, ColumnName
 
 print('Fitting script started.', flush=True)
 
-run_to_continue = Path('data/mb20208/runs/close_detailed_moa_2020-12-28-16-00-33')
+run_to_continue = Path('data/mb20208/runs/close_detailed_more_instruments_2020-12-28-16-01-07')
 
 match = re.match(r'(.*)_[\d\-]+', run_to_continue.name)
-fit_run_name = f'{match.group(1)}_mcmc_check'
+fit_run_name = f'{match.group(1)}_mcmc'
 datetime_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 fit_run_directory = Path(f'data/mb20208/runs/{fit_run_name}_{datetime_string}')
 fit_run_directory.mkdir(exist_ok=True, parents=True)
@@ -33,7 +34,9 @@ for light_curve in light_curves:
         (light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] < 9115)
     ]
     light_curve.remove_data_points_by_error_relative_to_maximum_minimum_range()
-    light_curve.remove_data_points_by_chi_squared_limit()
+    chi_squared_mean = light_curve.remove_data_points_by_chi_squared_limit()
+    light_curve.instrument_parameters.fudge_factor = \
+        light_curve.instrument_parameters.fudge_factor * math.sqrt(chi_squared_mean)
     light_curve.data_frame = pd.concat([light_curve.data_frame, planetary_event_data_frame]).drop_duplicates()
 
 lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(

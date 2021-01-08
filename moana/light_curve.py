@@ -4,6 +4,8 @@ Code for working with David Bennett's light curve format.
 from __future__ import annotations
 
 import re
+import warnings
+
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -33,6 +35,10 @@ class FitModelColumnName(Enum):
     MAGNIFICATION = 'magnification'
     MAGNIFICATION_ERROR = 'magnification_error'
     MAGNIFICATION_RESIDUAL = 'magnification_residual'
+
+
+class NoResidualFoundError(ValueError):
+    pass
 
 
 class LightCurve:
@@ -114,14 +120,17 @@ class LightCurve:
         light_curve = cls.from_path(light_curve_path)
         instrument_suffix = light_curve_path.suffix[1:]
         light_curve_residual_data_frame = run_residual_data_frame[run_residual_data_frame['sfx'] == instrument_suffix]
+        if light_curve_residual_data_frame.shape[0] == 0:
+            raise NoResidualFoundError(f'No residual found for light curve {instrument_suffix} from {run_path}.')
         assert np.allclose(light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
                            light_curve_residual_data_frame['date'])
-        light_curve.data_frame[FitModelColumnName.CHI_SQUARED.value] = light_curve_residual_data_frame['chi2']
-        light_curve.data_frame[FitModelColumnName.MAGNIFICATION.value] = light_curve_residual_data_frame['mgf_data']
+        light_curve.data_frame[FitModelColumnName.CHI_SQUARED.value] = light_curve_residual_data_frame['chi2'].values
+        light_curve.data_frame[FitModelColumnName.MAGNIFICATION.value] = \
+            light_curve_residual_data_frame['mgf_data'].values
         light_curve.data_frame[
-            FitModelColumnName.MAGNIFICATION_ERROR.value] = light_curve_residual_data_frame['sig_mgf']
+            FitModelColumnName.MAGNIFICATION_ERROR.value] = light_curve_residual_data_frame['sig_mgf'].values
         light_curve.data_frame[
-            FitModelColumnName.MAGNIFICATION_RESIDUAL.value] = light_curve_residual_data_frame['res_mgf']
+            FitModelColumnName.MAGNIFICATION_RESIDUAL.value] = light_curve_residual_data_frame['res_mgf'].values
         return light_curve
 
     def remove_data_points_by_chi_squared_limit(self, chi_squared_limit: float = 16) -> float:
@@ -141,7 +150,11 @@ class LightCurve:
         light_curve_paths = directory_path.glob('lc*')
         light_curves = []
         for light_curve_path in light_curve_paths:
-            light_curve = cls.from_path_with_residuals_from_run(light_curve_path)
+            try:
+                light_curve = cls.from_path_with_residuals_from_run(light_curve_path)
+            except NoResidualFoundError as error:
+                warnings.warn(error.args[0] + '\nExcluding light curve from list.')
+                continue
             light_curves.append(light_curve)
         return light_curves
 
