@@ -1,6 +1,8 @@
 """
 Code to interact with light curve files of various formats.
 """
+import re
+from io import StringIO
 from pathlib import Path
 import pandas as pd
 
@@ -108,18 +110,22 @@ class LightCurveFileLiaison:
             ]
         return david_bennett_data_frame
 
+    @staticmethod
+    def load_pysis_light_curve_data_frame(pysis_file_path: Path) -> pd.DataFrame:
+        with pysis_file_path.open() as pysis_file:
+            pysis_file_content = pysis_file.read()
+        pysis_file_content = re.sub(r'[ ]{2,}', ' nan ', pysis_file_content)  # Missing values are multiple spaces.
+        pysis_string_io = StringIO(pysis_file_content)
+        light_curve_data_frame = pd.read_csv(pysis_string_io, delim_whitespace=True, header=None,
+                                             usecols=[1, 2, 3],
+                                             names=[ColumnName.MAGNITUDE.value,
+                                                    ColumnName.MAGNITUDE_ERROR.value,
+                                                    ColumnName.TIME__MICROLENSING_HJD.value])
+        return light_curve_data_frame
+
 
 if __name__ == '__main__':
     light_curve_file_liaison = LightCurveFileLiaison()
-    light_curve_file_liaison.convert_light_curve_file_from_ian_bond_format_to_david_bennet_format(
-        Path('data/mb20208/external_data/mb20208-MOA2R-10000.phot.dat.txt'),
-        Path('data/mb20208/old_flat_directory_style_runs/lcMB20208.moa2r')
-    )
-    light_curve_file_liaison.convert_light_curve_file_from_ian_bond_format_to_david_bennet_format(
-        Path('data/mb20208/external_data/mb20208-MOA2V-10000.phot.dat.txt'),
-        Path('data/mb20208/old_flat_directory_style_runs/lcMB20208.moa2v')
-    )
-    light_curve_file_liaison.convert_light_curve_file_from_kmt_tlc_format_to_david_bennet_format(
-        Path('data/mb20208/external_data/KMTA22_I.pysis.dflux'),
-        Path('data/mb20208/old_flat_directory_style_runs/lcMB20208.kmtA22')
+    light_curve_file_liaison.load_pysis_light_curve_data_frame(
+        Path('data/mb20208/external_data/Auckland_MB20208R.pysis')
     )
