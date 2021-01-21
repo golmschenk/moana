@@ -112,6 +112,12 @@ class LightCurveFileLiaison:
 
     @staticmethod
     def load_pysis_light_curve_data_frame(pysis_file_path: Path) -> pd.DataFrame:
+        """
+        Loads a pysis format file in the project light curve data frame format.
+
+        :param pysis_file_path: The path to the pysis file.
+        :return: The data frame with the light curve information.
+        """
         with pysis_file_path.open() as pysis_file:
             pysis_file_content = pysis_file.read()
         pysis_file_content = re.sub(r'[ ]{2,}', ' nan ', pysis_file_content)  # Missing values are multiple spaces.
