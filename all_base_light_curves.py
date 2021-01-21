@@ -55,7 +55,7 @@ def create_all_mb20208_light_curves() -> List[LightCurveWithInstrumentParameters
         lco1_suffix, lco1_light_curve_data_frame, instrument_parameters_dictionary[lco1_suffix])
     light_curves.append(lco1_light_curve)
 
-    pysis_file_dictionary = {'kumeu': 'Kumeu_MB20208R.pysis',
+    pysis_file_dictionary = {'kum': 'Kumeu_MB20208R.pysis',
                              'auck': 'Auckland_MB20208R.pysis',
                              'fco': 'FCO_MB20208U.pysis'}
     for suffix, file_name in pysis_file_dictionary.items():
@@ -65,8 +65,10 @@ def create_all_mb20208_light_curves() -> List[LightCurveWithInstrumentParameters
         
     for light_curve in light_curves:
         light_curve.data_frame.drop(
-            light_curve.data_frame[light_curve.data_frame[ColumnName.MICROLENSING_HJD.value] < 9000].index, inplace=True)
+            light_curve.data_frame[light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] < 9000].index,
+            inplace=True)
         light_curve.data_frame.drop(
-            light_curve.data_frame[light_curve.data_frame[ColumnName.MICROLENSING_HJD.value] > 9200].index, inplace=True)
+            light_curve.data_frame[light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] > 9200].index,
+            inplace=True)
 
     return light_curves
