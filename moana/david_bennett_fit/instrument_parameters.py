@@ -6,6 +6,7 @@ from __future__ import annotations
 import itertools
 import re
 from io import StringIO
+import numpy as np
 import pandas as pd
 from enum import Enum
 from pathlib import Path
@@ -102,6 +103,7 @@ class InstrumentParameters:
             MeasurementType.FLUX: itertools.chain(range(30, 40), range(50, 60))
         }
         instrument_parameters_dictionary_list = []
+        used_measurement_type_index = []
         for instrument_parameters in instrument_parameters_list:
             measurement_type_index = next(measurement_type_index_generators[instrument_parameters.measurement_type])
             if instrument_parameters.earth_location is not None:
@@ -123,6 +125,23 @@ class InstrumentParameters:
                 'longitude': longitude,
                 'latitude': latitude,
             })
+            used_measurement_type_index.append(measurement_type_index)
+        instrument_parameters_dictionary_list.sort(key=lambda entry: entry['measurement_type_index'])
+        for filler_measurement_type_index in range(np.max(used_measurement_type_index)):
+            if filler_measurement_type_index not in used_measurement_type_index:
+                instrument_parameters_dictionary_list.append({
+                    'measurement_type_index': filler_measurement_type_index,
+                    'fudge_factor': 0,
+                    'error_minimum': 0,
+                    'flux_minimum': 0,
+                    'flux_maximum': 0,
+                    'limb_darkening_a': 0,
+                    'limb_darkening_b': 0,
+                    'time_offset': 0,
+                    'suffix': 'null',
+                    'longitude': 0,
+                    'latitude': 0,
+                })
         parameter_data_frame = pd.DataFrame(instrument_parameters_dictionary_list)
         parameter_data_frame = parameter_data_frame.astype({
             'measurement_type_index': int,
