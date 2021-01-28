@@ -86,7 +86,7 @@ class DavidBennettFitRunner:
                                   'run_\n' \
                                   'no limb\n' \
                                   '17 53 43.80 -32 35 21.52\n' \
-                                  '0 mcmc_run_1.dat\n'
+                                  '1 mcmc_run_1.dat\n'
         return run_configuration_lines
 
     def run(self):
