@@ -4,12 +4,13 @@ from bokeh.models import Row, Column
 from moana import dbc
 from moana.viewer.caustic_crossing_viewer import CausticCrossingViewer
 from moana.viewer.caustic_topology_viewer import CausticTopologyViewer
+from moana.viewer.delta_chi_squared_viewer import ChiSquaredViewer
 
 from moana.viewer.run_modifier import RunModifier
 from moana.viewer.run_fit_viewer import RunFitViewer
 
-run_path1 = Path('data/mb20208/runs/close_detailed_more_instruments_parallax_2020-12-17-17-06-41/run_1')
-run_path0 = Path('data/mb20208/runs/wide_detailed_more_instruments_2020-12-23-17-58-22/run_1')
+run_path1 = Path('data/mb20208/runs/wide_detailed_moa_2020-12-28-16-02-46/run_1')
+run_path0 = Path('data/mb20208/runs/close_detailed_moa_2020-12-28-16-00-33/run_1')
 
 run0 = dbc.Output(run_path0.stem, path=run_path0.parent)
 run0.load()
@@ -39,7 +40,10 @@ caustic_row.sizing_mode = 'stretch_width'
 
 bottom_parameter_comparison_table = viewer.create_run_parameter_comparison_table(run_path0, run_path1)
 
+cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models(run_path0, run_path1)
+cumulative_delta_chi_squared_figure.sizing_mode = 'stretch_width'
+
 column = Column(parameter_comparison_table, side_by_side_clone_comparison_view, caustic_row,
-                bottom_parameter_comparison_table)
+                bottom_parameter_comparison_table, cumulative_delta_chi_squared_figure)
 column.sizing_mode = 'stretch_width'
 show(column)
