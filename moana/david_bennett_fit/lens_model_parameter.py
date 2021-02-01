@@ -14,6 +14,9 @@ from tabulate import tabulate
 
 
 # noinspection SpellCheckingInspection
+from moana.light_curve import FitModelColumnName
+
+
 class LensModelParameterName(Enum):
     # TODO: These need better names
     INVERSE_EINSTEIN_CROSSING_TIME = '1/t_E'
@@ -100,3 +103,19 @@ class LensModelParameter:
         list_of_lists = [[element for element in list_ if pd.notna(element)] for list_ in list_of_lists]
         input_string = tabulate(list_of_lists, tablefmt='plain', floatfmt='.10')
         return input_string
+
+    @classmethod
+    def dictionary_from_lowest_chi_squared_from_mcmc_run_output(cls, mcmc_run_path: Path
+                                                                ) -> Dict[str, LensModelParameter]:
+        lens_model_parameter_names = [name.value for name in LensModelParameterName]
+        column_names = [FitModelColumnName.CHI_SQUARED.value, *lens_model_parameter_names]
+        mcmc_output_dataframe = pd.read_csv(mcmc_run_path.joinpath('mcmc_run_1.dat'), delim_whitespace=True,
+                                            usecols=list(range(len(column_names))), skipinitialspace=True, header=None,
+                                            index_col=None, names=column_names)
+        minimum_chi_squared_lens_parameter_row = mcmc_output_dataframe.iloc[
+            mcmc_output_dataframe[FitModelColumnName.CHI_SQUARED.value].argmin()]
+        lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(
+            mcmc_run_path.joinpath('run_1.in'))
+        for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
+            lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name]
+        return lens_model_parameter_dictionary

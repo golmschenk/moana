@@ -54,14 +54,15 @@ def continue_existing_run(run_to_continue: Path):
     print(f'Finished `{fit_run_directory}` at {datetime.datetime.now()}.', flush=True)
 
 
-continue_list = []
-for path in Path('data/mb20208/runs').glob('*'):
-    if 'moa' in path.name and 'mcmc' not in path.name:
-        continue_list.append(path)
-processes = []
-for to_continue in continue_list:
-    process = multiprocessing.Process(target=continue_existing_run, args=(to_continue,))
-    process.start()
-    processes.append(process)
-for process in processes:
-    process.join()
+if __name__ == '__main__':
+    continue_list = []
+    for path in Path('data/mb20208/runs').glob('*'):
+        if 'moa' in path.name and 'mcmc' not in path.name:
+            continue_list.append(path)
+    processes = []
+    for to_continue in continue_list:
+        process = multiprocessing.Process(target=continue_existing_run, args=(to_continue,))
+        process.start()
+        processes.append(process)
+    for process in processes:
+        process.join()
