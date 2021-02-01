@@ -159,6 +159,15 @@ class LightCurve:
         return light_curves
 
     @classmethod
+    def list_for_run_directory(cls, directory_path: Path) -> List[LightCurve]:
+        light_curve_paths = directory_path.glob('lc*')
+        light_curves = []
+        for light_curve_path in light_curve_paths:
+            light_curve = cls.from_path(light_curve_path)
+            light_curves.append(light_curve)
+        return light_curves
+
+    @classmethod
     def save_list_to_directory(cls, light_curves: List[LightCurve], directory: Path):
         for light_curve in light_curves:
             light_curve.to_path(directory.joinpath(f'lc{event_name}.{light_curve.instrument_suffix}'))
