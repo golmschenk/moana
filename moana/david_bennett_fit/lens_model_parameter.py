@@ -142,4 +142,3 @@ class LensModelParameter:
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
             lens_model_parameter.value = lens_parameter_row[lens_model_parameter_name]
         return lens_model_parameter_dictionary
-
