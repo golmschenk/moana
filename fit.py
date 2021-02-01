@@ -16,7 +16,7 @@ print('Fitting script started.', flush=True)
 
 def continue_existing_run(run_to_continue: Path):
     match = re.match(r'(.*)_[\d\-]+', run_to_continue.name)
-    fit_run_name = f'{match.group(1)}_faster_parameters_mcmc'
+    fit_run_name = f'{match.group(1)}_cont'
     datetime_string = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     fit_run_directory = Path(f'data/mb20208/runs/{fit_run_name}_{datetime_string}')
     fit_run_directory.mkdir(exist_ok=True, parents=True)
@@ -37,8 +37,8 @@ def continue_existing_run(run_to_continue: Path):
         light_curve.instrument_parameters.fudge_factor = \
             light_curve.instrument_parameters.fudge_factor * math.sqrt(chi_squared_mean)
         light_curve.data_frame = pd.concat([light_curve.data_frame, planetary_event_data_frame]).drop_duplicates()
-    lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
-        run_to_continue.joinpath('run_2.in')
+    lens_model_parameter_dictionary = LensModelParameter.dictionary_from_lowest_chi_squared_from_mcmc_run_output(
+        run_to_continue
     )
     fitting_algorithm_parameters = FittingAlgorithmParameters.from_david_bennett_parameter_file_path(
         parameter_file_path)
@@ -57,7 +57,7 @@ def continue_existing_run(run_to_continue: Path):
 if __name__ == '__main__':
     continue_list = []
     for path in Path('data/mb20208/runs').glob('*'):
-        if 'moa' in path.name and 'mcmc' not in path.name:
+        if 'moa' in path.name and 'mcmc0' in path.name and not path.joinpath('run_2.in').exists():
             continue_list.append(path)
     processes = []
     for to_continue in continue_list:

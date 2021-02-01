@@ -11,6 +11,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Union, Dict
 from tabulate import tabulate
+from file_read_backwards import FileReadBackwards
 
 
 # noinspection SpellCheckingInspection
@@ -119,3 +120,26 @@ class LensModelParameter:
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
             lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name]
         return lens_model_parameter_dictionary
+
+    @classmethod
+    def dictionary_from_lowest_chi_squared_from_run_output(cls, run_path: Path
+                                                           ) -> Dict[str, LensModelParameter]:
+        column_names = [name.value for name in LensModelParameterName]
+        with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:
+            while True:
+                line = file_read_backwards.readline()
+                if line.strip().startswith('accepted due to chi2 improvement'):
+                    _ = file_read_backwards.readline()  # Discard chi squared value line.
+                    lens_parameter_line = file_read_backwards.readline()
+                    break
+        lens_parameter_line = lens_parameter_line.replace('FCN call with a =', '').strip()
+        lens_parameter_string_io = StringIO(lens_parameter_line)
+        lens_parameter_data_frame = pd.read_csv(lens_parameter_string_io, delim_whitespace=True,
+                                            usecols=list(range(len(column_names))), skipinitialspace=True, header=None,
+                                            index_col=None, names=column_names)
+        lens_parameter_row = lens_parameter_data_frame.iloc[0]
+        lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(run_path.joinpath('run_1.in'))
+        for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
+            lens_model_parameter.value = lens_parameter_row[lens_model_parameter_name]
+        return lens_model_parameter_dictionary
+
