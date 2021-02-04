@@ -9,8 +9,8 @@ from moana.viewer.delta_chi_squared_viewer import ChiSquaredViewer
 from moana.viewer.run_modifier import RunModifier
 from moana.viewer.run_fit_viewer import RunFitViewer
 
-run_path1 = Path('data/mb20208/runs/wide_detailed_moa_2020-12-28-16-02-46/run_1')
-run_path0 = Path('data/mb20208/runs/close_detailed_moa_2020-12-28-16-00-33/run_1')
+run_path1 = Path('data/mb20208/runs/obsolete/wide_detailed_moa_2020-12-28-16-02-46/run_1')
+run_path0 = Path('data/mb20208/runs/obsolete/close_detailed_moa_2020-12-28-16-00-33/run_1')
 
 run0 = dbc.Output(run_path0.stem, path=run_path0.parent)
 run0.load()
