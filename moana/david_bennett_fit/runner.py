@@ -4,7 +4,7 @@ Code to manage fitting runs using David Bennett's code.
 import datetime
 import subprocess
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorithmParameters
 from moana.david_bennett_fit.instrument_parameters import InstrumentParameters
@@ -25,6 +25,7 @@ class DavidBennettFitRunner:
         self.light_curve_with_instrument_parameters_list:List[LightCurveWithInstrumentParameters] = \
             light_curve_with_instrument_parameters_list
         self.fitting_algorithm_parameters: FittingAlgorithmParameters = fitting_algorithm_parameters
+        self.instructions: Optional[str] = None
 
     def generate_run_files(self):
         """
@@ -54,31 +55,10 @@ class DavidBennettFitRunner:
             self.lens_model_parameter_dictionary)
         blank_line = f'\n\n'
         run_configuration_lines = self.generate_run_configuration_lines()
-        instruction_lines = self.generate_instructions_string()
         input_file_path = self.fit_run_directory.joinpath('run_1.in')
         with input_file_path.open('w') as input_file:
             input_file.write(comment_line + lens_model_parameter_lines + blank_line + run_configuration_lines +
-                             instruction_lines)
-
-    def generate_instructions_string(self):
-        # TODO: Set the below lines by the user script rather than hard coded.
-        instruction_lines = self.mcmc_hard_coded_instructions_lines()
-        return instruction_lines
-
-    def mcmc_hard_coded_instructions_lines(self):
-        instruction_lines = 'SET EPS       1.e-5\n' \
-                            'SET ERR         2.0\n' \
-                            'OSEEK        200000\n' \
-                            'EXIT\n'
-        return instruction_lines
-
-    def fit_hard_coded_instructions_lines(self):
-        instruction_lines = 'SET EPS   1.e-5\n' \
-                            'DSEEK      3000\n' \
-                            'SET ERR     0.2\n' \
-                            'DSEEK      3000\n' \
-                            'EXIT\n'
-        return instruction_lines
+                             self.instructions)
 
     def generate_run_configuration_lines(self):
         # TODO: Set the below lines by the user script rather than hard coded.
@@ -86,7 +66,7 @@ class DavidBennettFitRunner:
                                   'run_\n' \
                                   'no limb\n' \
                                   '17 53 43.80 -32 35 21.52\n' \
-                                  '0 mcmc_run_1.dat\n'
+                                  f'0 {"mcmc_run_1.dat" if "OSEEK" in self.instructions else ""}\n'
         return run_configuration_lines
 
     def run(self):
@@ -105,3 +85,20 @@ class DavidBennettFitRunner:
 
         self.lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
             self.fit_run_directory.joinpath('run_2.in'))
+
+    def fit(self):
+        self.instructions = 'SET EPS   1.e-5\n' \
+                            'DSEEK      3000\n' \
+                            'SET ERR     0.2\n' \
+                            'DSEEK      3000\n' \
+                            'EXIT\n'
+        self.generate_run_files()
+        self.run()
+
+    def mcmc(self):
+        self.instructions = 'SET EPS       1.e-5\n' \
+                            'SET ERR         2.0\n' \
+                            'OSEEK        200000\n' \
+                            'EXIT\n'
+        self.generate_run_files()
+        self.run()
