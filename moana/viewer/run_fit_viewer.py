@@ -9,6 +9,7 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana import dbc
+from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
 from moana.light_curve import LightCurve, ColumnName
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
@@ -101,22 +102,19 @@ class RunFitViewer:
         return combination_grid_plot
 
     def create_run_parameter_comparison_table(self, run_path0: Path, run_path1: Path) -> DataTable:
-        run0 = dbc.Output(run_path0.stem, path=str(run_path0.parent))
+        run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run_path0.joinpath('run_2.in'))
+        run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run_path1.joinpath('run_2.in'))
+        run0 = dbc.Output('run_1', path=str(run_path0))
         run0.load()
-        run1 = dbc.Output(run_path1.stem, path=str(run_path1.parent))
+        run1 = dbc.Output('run_1', path=str(run_path1))
         run1.load()
-        run0.run = run_path0.parent.stem[-20:]  # TODO: Don't do this here.
-        run1.run = run_path1.parent.stem[-20:]  # TODO: Don't do this here.
-        run0_parameters: pd.Series = run0.param
-        run1_parameters: pd.Series = run1.param
-        column_names_to_keep = ['chisq', 't_E', 't0', 'umin', 'sep', 'theta', 'eps1', 'eps2', 'Tstar']
-        run0_parameters = run0_parameters.filter(column_names_to_keep)
-        run1_parameters = run1_parameters.filter(column_names_to_keep)
-        difference_between_parameters = run0_parameters - run1_parameters
-        comparison_data_frame = pd.concat([pd.DataFrame(run0_parameters).transpose(),
-                                           pd.DataFrame(run1_parameters).transpose(),
-                                           pd.DataFrame(difference_between_parameters).transpose()])
-        comparison_data_frame.insert(0, 'run', [run0.run, run1.run, 'difference'])
+        run0.run = run_path0.stem[-20:]  # TODO: Don't do this here.
+        run1.run = run_path1.stem[-20:]  # TODO: Don't do this here.
+        comparison_dictionary = {'run': [run0.run, run1.run, 'difference']}
+        for key in run0_parameters.keys():
+            comparison_dictionary[key] = [run0_parameters[key].value, run1_parameters[key].value,
+                                          run0_parameters[key].value - run1_parameters[key].value]
+        comparison_data_frame = pd.DataFrame(comparison_dictionary)
         table_columns = []
         for column_name in comparison_data_frame.columns:
             formatter = None

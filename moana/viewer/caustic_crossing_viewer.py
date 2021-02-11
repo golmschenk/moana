@@ -22,7 +22,7 @@ class CausticCrossingViewer:
             title_ = Title()
             title_.text = title
             figure.title = title_
-        fit_model = moana.dbc.io.Output(run_path.name, path=str(run_path.parent))
+        fit_model = moana.dbc.io.Output('run_1', path=str(run_path))
         fit_model.load()
         params = fit_model.param.to_dict()
 
@@ -59,6 +59,6 @@ class CausticCrossingViewer:
         x = fit_model.fitlc['xs']
         y = fit_model.fitlc['ys']
         color_mapper = ColorMapper()
-        fit_color = color_mapper.get_fit_color(run_path.parent.stem[-20:])  # TODO: Don't do this here
+        fit_color = color_mapper.get_fit_color(run_path.stem[-20:])  # TODO: Don't do this here
         figure.line(x=x, y=y, color=fit_color, line_width=2)
         return figure

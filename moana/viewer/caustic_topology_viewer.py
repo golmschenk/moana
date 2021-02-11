@@ -41,9 +41,9 @@ class CausticTopologyViewer:
 
     @staticmethod
     def add_run_to_figure(figure: Figure, run_path: Path):
-        fit_model = moana.dbc.io.Output(run_path.name, path=str(run_path.parent))
+        fit_model = moana.dbc.io.Output('run_1', path=str(run_path))
         fit_model.load()
-        fit_model.run = run_path.parent.stem[-20:]  # TODO: Don't do this here.
+        fit_model.run = run_path.stem[-20:]  # TODO: Don't do this here.
         color_mapper = ColorMapper()
         color = color_mapper.get_fit_color(fit_model.run)
         figure.circle(x=fit_model.param['sep'], y=fit_model.param['q'], size=20, alpha=0.5, color=color)

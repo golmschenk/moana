@@ -14,9 +14,9 @@ class ChiSquaredViewer:
     def for_comparison_of_two_fit_models(cls, run_path0: Path, run_path1: Path) -> Figure:
         color_mapper = ColorMapper()
         figure = Figure(x_axis_label='Time (Offset HJD)', y_axis_label='Cumulative delta chi squared')
-        light_curves0 = LightCurve.list_for_run_directory_with_residuals(run_path0.parent)
+        light_curves0 = LightCurve.list_for_run_directory_with_residuals(run_path0)
         light_curve_dictionary0 = {light_curve.instrument_suffix: light_curve for light_curve in light_curves0}
-        light_curves1 = LightCurve.list_for_run_directory_with_residuals(run_path1.parent)
+        light_curves1 = LightCurve.list_for_run_directory_with_residuals(run_path1)
         light_curve_dictionary1 = {light_curve.instrument_suffix: light_curve for light_curve in light_curves1}
         for instrument_suffix in light_curve_dictionary0.keys():
             light_curve0 = light_curve_dictionary0[instrument_suffix]
