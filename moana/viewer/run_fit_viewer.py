@@ -8,8 +8,8 @@ from bokeh.models import ColumnDataSource, Box, DataTable, TableColumn, Scientif
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
-from moana import dbc
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
+from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve, ColumnName
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
@@ -31,39 +31,35 @@ class RunFitViewer:
                                                'magnification_residual': magnification_residual})
         return light_curve_data_frame
 
-    def add_instrument_data_points_of_run_to_light_curve_and_residual_figures(self, run: Output,
+    def add_instrument_data_points_of_run_to_light_curve_and_residual_figures(self, run: Run,
                                                                               light_curve_figure: Figure,
                                                                               residual_figure: Figure):
         self.add_all_instruments_data_points_of_run_to_figure(run, light_curve_figure)
         self.add_all_instruments_data_points_of_run_to_figure(run, residual_figure,
                                                               y_column_name='magnification_residual')
 
-    def add_all_instruments_data_points_of_run_to_figure(self, run: Output, figure: Figure,
+    def add_all_instruments_data_points_of_run_to_figure(self, run: Run, figure: Figure,
                                                          y_column_name: str = 'magnification'):
-        instrument_suffixes = sorted(run.resid['sfx'].unique())
+        instrument_suffixes = sorted(run.dbc_output.resid['sfx'].unique())
         for instrument_suffix in instrument_suffixes:
             color_mapper = ColorMapper()
             instrument_color = color_mapper.get_instrument_color(instrument_suffix)
-            instrument_data_frame = self.extract_instrument_specific_light_curve_data_frame(run.resid,
+            instrument_data_frame = self.extract_instrument_specific_light_curve_data_frame(run.dbc_output.resid,
                                                                                             instrument_suffix)
             LightCurveViewer.add_light_curve_points_with_errors_to_figure(
                 figure, instrument_data_frame, instrument_suffix, instrument_color, y_column_name)
 
-    def add_fit_of_run_to_light_curve_and_residual_figures(self, run: Output, light_curve_figure: Figure,
+    def add_fit_of_run_to_light_curve_and_residual_figures(self, run: Run, light_curve_figure: Figure,
                                                            residual_figure: Figure):
-        run_name = run.run
-        if re.match(r'run_\d+(\.in)?', run_name):
-            run_name = Path(run.path).stem
-        run_name = run_name[-20:]
         color_mapper = ColorMapper()
-        fit_color = color_mapper.get_fit_color(run_name)
-        fit_times = run.fitlc['date']
-        fit_magnifications = run.fitlc['mgf']
+        fit_color = color_mapper.get_fit_color(str(run.path))
+        fit_times = run.dbc_output.fitlc['date']
+        fit_magnifications = run.dbc_output.fitlc['mgf']
         fit_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: fit_times,
                                        'magnification': fit_magnifications})
         fit_data_source = ColumnDataSource(fit_data_frame)
         light_curve_figure.line(source=fit_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value, y='magnification',
-                                legend_label=run_name, line_color=fit_color, line_width=2)
+                                legend_label=run.display_name, line_color=fit_color, line_width=2)
 
         residual_baseline_times = [fit_times.min(), fit_times.max()]
         residual_baseline_values = [0, 0]
@@ -71,7 +67,7 @@ class RunFitViewer:
                                                   'residual': residual_baseline_values})
         residual_guide_data_source = ColumnDataSource(residual_guide_data_frame)
         residual_figure.line(source=residual_guide_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value, y='residual',
-                             line_color=fit_color, line_width=2, legend_label=run_name)
+                             line_color=fit_color, line_width=2, legend_label=run.display_name)
 
     def create_comparison_view_components(self):
         light_curve_figure = Figure()
@@ -86,7 +82,7 @@ class RunFitViewer:
         combination_grid_plot.sizing_mode = 'stretch_width'
         return light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot
 
-    def create_comparison_view(self, run0: Output, run1: Output) -> Box:
+    def create_comparison_view(self, run0: Run, run1: Run) -> Box:
         comparison_view_components = self.create_comparison_view_components()
         light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot = comparison_view_components
         scale, shift = self.calculate_mean_relative_instrument_scale_and_shift(run0, run1)
@@ -101,16 +97,10 @@ class RunFitViewer:
         residual_figure1.legend.visible = False
         return combination_grid_plot
 
-    def create_run_parameter_comparison_table(self, run_path0: Path, run_path1: Path) -> DataTable:
-        run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run_path0.joinpath('run_2.in'))
-        run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run_path1.joinpath('run_2.in'))
-        run0 = dbc.Output('run_1', path=str(run_path0))
-        run0.load()
-        run1 = dbc.Output('run_1', path=str(run_path1))
-        run1.load()
-        run0.run = run_path0.stem[-20:]  # TODO: Don't do this here.
-        run1.run = run_path1.stem[-20:]  # TODO: Don't do this here.
-        comparison_dictionary = {'run': [run0.run, run1.run, 'difference']}
+    def create_run_parameter_comparison_table(self, run0: Run, run1: Run) -> DataTable:
+        run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run0.output_input_file_path)
+        run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run1.output_input_file_path)
+        comparison_dictionary = {'run': [run0.display_name, run1.display_name, 'difference']}
         for key in run0_parameters.keys():
             comparison_dictionary[key] = [run0_parameters[key].value, run1_parameters[key].value,
                                           run0_parameters[key].value - run1_parameters[key].value]
@@ -127,11 +117,9 @@ class RunFitViewer:
         comparison_data_table.height = 100
         return comparison_data_table
 
-    def calculate_mean_relative_instrument_scale_and_shift(self, run0: Output, run1: Output) -> (float, float):
-        run_path0 = Path(run0.path)
-        run_path1 = Path(run1.path)
-        residual_path0 = run_path0.joinpath(f'resid.{run0.run}')
-        residual_path1 = run_path1.joinpath(f'resid.{run1.run}')
+    def calculate_mean_relative_instrument_scale_and_shift(self, run0: Run, run1: Run) -> (float, float):
+        residual_path0 = run0.residual_file_path
+        residual_path1 = run1.residual_file_path
         parameter_series0 = LightCurve.load_normalization_parameters_from_residual_file(residual_path0)
         parameter_series1 = LightCurve.load_normalization_parameters_from_residual_file(residual_path1)
         parameter_data_frame = pd.DataFrame([parameter_series0, parameter_series1]).reset_index(drop=True)
@@ -143,16 +131,17 @@ class RunFitViewer:
         relative_scale_series = scale_parameter_data_frame.iloc[0] / scale_parameter_data_frame.iloc[1]
         relative_shift_series = ((shift_parameter_data_frame.iloc[0] - shift_parameter_data_frame.iloc[1]) /
                                  scale_parameter_data_frame.iloc[1])
-        instrument_data_count_series = run0.resid['sfx'].value_counts()
+        instrument_data_count_series = run0.dbc_output.resid['sfx'].value_counts()
         instrument_data_count_series = instrument_data_count_series.filter(relative_scale_series.index)
         relative_scale = np.average(relative_scale_series.values, weights=instrument_data_count_series.values)
         relative_shift = np.average(relative_shift_series.values, weights=instrument_data_count_series.values)
         return relative_scale, relative_shift
 
-    def reverse_scale_and_shift_run(self, run: Output, scale: float, shift: float) -> Output:
+    def reverse_scale_and_shift_run(self, run: Run, scale: float, shift: float) -> Run:
         run = copy.deepcopy(run)
-        run.fitlc['mgf'] = (run.fitlc['mgf'] - shift) / scale
-        run.resid['mgf_data'] = (run.resid['mgf_data'] - shift) / scale
-        run.resid['res_mgf'] = run.resid['res_mgf'] / scale
-        run.resid['sig_mgf'] = run.resid['sig_mgf'] / scale
+        output = run.dbc_output
+        output.fitlc['mgf'] = (output.fitlc['mgf'] - shift) / scale
+        output.resid['mgf_data'] = (output.resid['mgf_data'] - shift) / scale
+        output.resid['res_mgf'] = output.resid['res_mgf'] / scale
+        output.resid['sig_mgf'] = output.resid['sig_mgf'] / scale
         return run

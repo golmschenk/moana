@@ -4,27 +4,25 @@ Code for plotting a caustic crossing path
 from typing import Union
 
 import numpy as np
-from pathlib import Path
 
 from bokeh.models import Title, PanTool, BoxZoomTool, WheelZoomTool, ResetTool
 from bokeh.plotting import Figure
 
 import moana
+from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
 
 
 class CausticCrossingViewer:
     @classmethod
-    def figure_for_run_path(cls, run_path: Path, title: Union[None, str] = None) -> Figure:
+    def figure_for_run_path(cls, run: Run, title: Union[None, str] = None) -> Figure:
         figure = Figure(match_aspect=True, tools=[PanTool(), BoxZoomTool(match_aspect=True),
                                                   WheelZoomTool(zoom_on_axis=False), ResetTool()])
         if title is not None:
             title_ = Title()
             title_.text = title
             figure.title = title_
-        fit_model = moana.dbc.io.Output('run_1', path=str(run_path))
-        fit_model.load()
-        params = fit_model.param.to_dict()
+        params = run.dbc_output.param.to_dict()
 
         # Create a MOANA lens object (do not care about the name 'ResonantCaustic'),
         # it works for all caustics.
@@ -56,9 +54,9 @@ class CausticCrossingViewer:
         figure.diamond(x=real_component1, y=imaginary_component1, line_color=caustic_color, fill_alpha=0, size=2)
 
         # Plot the source trajectory
-        x = fit_model.fitlc['xs']
-        y = fit_model.fitlc['ys']
+        x = run.dbc_output.fitlc['xs']
+        y = run.dbc_output.fitlc['ys']
         color_mapper = ColorMapper()
-        fit_color = color_mapper.get_fit_color(run_path.stem[-20:])  # TODO: Don't do this here
+        fit_color = color_mapper.get_fit_color(str(run.path))
         figure.line(x=x, y=y, color=fit_color, line_width=2)
         return figure

@@ -3,27 +3,27 @@ Code for displaying the caustic topology.
 """
 from typing import List
 import numpy as np
-from pathlib import Path
 from bokeh.plotting import Figure
 
 import moana
+from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
 
 
 class CausticTopologyViewer:
     @classmethod
-    def figure_for_run_path(cls, run_path: Path) -> Figure:
+    def figure_for_run_path(cls, run: Run) -> Figure:
         viewer = CausticTopologyViewer()
         figure = viewer.create_caustic_topology_figure()
-        viewer.add_run_to_figure(figure, run_path)
+        viewer.add_run_to_figure(figure, run)
         return figure
 
     @classmethod
-    def figure_for_multiple_run_paths(cls, run_paths: List[Path]) -> Figure:
+    def figure_for_multiple_runs(cls, runs: List[Run]) -> Figure:
         viewer = CausticTopologyViewer()
         figure = viewer.create_caustic_topology_figure()
-        for run_path in run_paths:
-            viewer.add_run_to_figure(figure, run_path)
+        for run in runs:
+            viewer.add_run_to_figure(figure, run)
         return figure
 
     @staticmethod
@@ -40,10 +40,7 @@ class CausticTopologyViewer:
         return figure
 
     @staticmethod
-    def add_run_to_figure(figure: Figure, run_path: Path):
-        fit_model = moana.dbc.io.Output('run_1', path=str(run_path))
-        fit_model.load()
-        fit_model.run = run_path.stem[-20:]  # TODO: Don't do this here.
+    def add_run_to_figure(figure: Figure, run: Run):
         color_mapper = ColorMapper()
-        color = color_mapper.get_fit_color(fit_model.run)
-        figure.circle(x=fit_model.param['sep'], y=fit_model.param['q'], size=20, alpha=0.5, color=color)
+        color = color_mapper.get_fit_color(str(run.path))
+        figure.circle(x=run.dbc_output.param['sep'], y=run.dbc_output.param['q'], size=20, alpha=0.5, color=color)
