@@ -98,10 +98,16 @@ class DavidBennettFitRunner:
         self.generate_run_files()
         self.run_algorithm()
 
-    def mcmc(self):
-        self.instructions = 'SET EPS       1.e-5\n' \
-                            'SET ERR         2.0\n' \
-                            'OSEEK        200000\n' \
+    def mcmc(self, steps_to_run: int = 2e6):
+        if self.run.mcmc_output_file_path.exists():
+            existing_steps = self.run.get_mcmc_output_file_state_count()
+            steps_to_run -= existing_steps
+        if steps_to_run < 1:
+            print('MCMC output already has desired steps.')
+            return
+        self.instructions = 'SET EPS 1.e-5\n' \
+                            'SET ERR 2.0\n' \
+                            f'OSEEK {steps_to_run}\n' \
                             'EXIT\n'
         self.generate_run_files()
         self.run_algorithm()
