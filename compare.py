@@ -9,8 +9,8 @@ from moana.viewer.delta_chi_squared_viewer import ChiSquaredViewer
 from moana.viewer.run_modifier import RunModifier
 from moana.viewer.run_fit_viewer import RunFitViewer
 
-run0 = Run(Path('data/mb20208/runs/MOA only runs that actually finished (old style)/wide_detailed_moa_parallax_mcmc0_cont_2021-02-04-11-21-55'))
-run1 = Run(Path('data/mb20208/runs/MOA only runs that actually finished (old style)/close_detailed_moa_mcmc0_cont_2021-02-04-11-21-55'))
+run1 = Run(Path('data/mb20208/runs/MOA only runs that actually finished (old style)/wide_detailed_moa_parallax_mcmc0_cont_2021-02-04-11-21-55'))
+run0 = Run(Path('data/mb20208/runs/MOA only runs that actually finished (old style)/close_detailed_moa_mcmc0_cont_2021-02-04-11-21-55'))
 Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 
 run_modifier = RunModifier()

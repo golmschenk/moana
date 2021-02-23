@@ -3,6 +3,7 @@ Code to represent an existing run.
 """
 from __future__ import annotations
 
+import pandas as pd
 from pathlib import Path
 from typing import Optional, List
 
@@ -74,3 +75,13 @@ class Run:
         split_display_name1 = [part if part not in split_name0 else '...' for part in split_name1]
         run0.display_name = '_'.join(split_display_name0)
         run1.display_name = '_'.join(split_display_name1)
+
+    @property
+    def mcmc_output_file_path(self) -> Path:
+        return self.path.joinpath('mcmc_run_1.dat')
+
+    def get_mcmc_output_file_state_count(self) -> int:
+        state_repeat_column_index = 17
+        mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
+                                            header=None, index_col=None, usecols=[state_repeat_column_index])
+        return mcmc_output_dataframe[state_repeat_column_index].sum()

@@ -100,7 +100,9 @@ class RunFitViewer:
     def create_run_parameter_comparison_table(self, run0: Run, run1: Run) -> DataTable:
         run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run0.output_input_file_path)
         run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run1.output_input_file_path)
-        comparison_dictionary = {'run': [run0.display_name, run1.display_name, 'difference']}
+        comparison_dictionary = {'run': [run0.display_name, run1.display_name, 'difference'],
+                                 'chisq': [run0.dbc_output.param['chisq'], run1.dbc_output.param['chisq'],
+                                           run0.dbc_output.param['chisq'] - run1.dbc_output.param['chisq']]}
         for key in run0_parameters.keys():
             comparison_dictionary[key] = [run0_parameters[key].value, run1_parameters[key].value,
                                           run0_parameters[key].value - run1_parameters[key].value]
