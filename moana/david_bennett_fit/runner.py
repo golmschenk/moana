@@ -2,6 +2,7 @@
 Code to manage fitting runs using David Bennett's code.
 """
 import datetime
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -10,6 +11,7 @@ from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorith
 from moana.david_bennett_fit.instrument_parameters import InstrumentParameters
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
 from moana.david_bennett_fit.light_curve_with_instrument_parameters import LightCurveWithInstrumentParameters
+from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve
 
 
@@ -21,6 +23,7 @@ class DavidBennettFitRunner:
                  light_curve_with_instrument_parameters_list: List[LightCurveWithInstrumentParameters],
                  fitting_algorithm_parameters: FittingAlgorithmParameters):
         self.fit_run_directory: Path = fit_run_directory
+        self.run = Run(fit_run_directory)
         self.lens_model_parameter_dictionary: Dict[str, LensModelParameter] = lens_model_parameter_dictionary
         self.light_curve_with_instrument_parameters_list:List[LightCurveWithInstrumentParameters] = \
             light_curve_with_instrument_parameters_list
@@ -69,7 +72,7 @@ class DavidBennettFitRunner:
                                   f'0 {"mcmc_run_1.dat" if "OSEEK" in self.instructions else ""}\n'
         return run_configuration_lines
 
-    def run(self):
+    def run_algorithm(self):
         path_to_bennett_fitting_executable = Path('fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO').absolute()
 
         run_path = self.fit_run_directory.joinpath('run_1.in')
@@ -93,7 +96,7 @@ class DavidBennettFitRunner:
                             'DSEEK      3000\n' \
                             'EXIT\n'
         self.generate_run_files()
-        self.run()
+        self.run_algorithm()
 
     def mcmc(self):
         self.instructions = 'SET EPS       1.e-5\n' \
@@ -101,4 +104,10 @@ class DavidBennettFitRunner:
                             'OSEEK        200000\n' \
                             'EXIT\n'
         self.generate_run_files()
-        self.run()
+        self.run_algorithm()
+
+    def copy_mcmc_output_from_existing_run(self, existing_run: Run):
+        if self.run.mcmc_output_file_path.exists():
+            raise IOError('MCMC output file already exists.')
+        else:
+            shutil.copyfile(existing_run.mcmc_output_file_path, self.run.mcmc_output_file_path)

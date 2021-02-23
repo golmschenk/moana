@@ -7,6 +7,7 @@ from pathlib import Path
 
 from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorithmParameters
 from moana.david_bennett_fit.light_curve_with_instrument_parameters import LightCurveWithInstrumentParameters
+from moana.david_bennett_fit.run import Run
 from moana.david_bennett_fit.runner import DavidBennettFitRunner
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter, LensModelParameterName
 from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiaison
@@ -52,6 +53,7 @@ def continue_existing_run(run_to_continue: Path):
                                                      lens_model_parameter_dictionary=lens_model_parameter_dictionary,
                                                      light_curve_with_instrument_parameters_list=light_curves,
                                                      fitting_algorithm_parameters=fitting_algorithm_parameters)
+    david_bennett_fit_runner.copy_mcmc_output_from_existing_run(Run(run_to_continue))
     print(f'Running `{fit_run_directory}` started at {datetime.datetime.now()}...', flush=True)
     david_bennett_fit_runner.mcmc()
     print(f'Finished `{fit_run_directory}` at {datetime.datetime.now()}.', flush=True)
