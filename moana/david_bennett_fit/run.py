@@ -7,7 +7,9 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional, List
 
+from moana.david_bennett_fit.names import LensModelParameterName
 from moana.dbc import Output
+from moana.light_curve import FitModelColumnName
 
 
 class Run:
@@ -85,3 +87,30 @@ class Run:
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
                                             header=None, index_col=None, usecols=[state_repeat_column_index])
         return mcmc_output_dataframe[state_repeat_column_index].sum()
+
+    def get_mcmc_output_file_row_count(self) -> int:
+        state_repeat_column_index = 17
+        mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
+                                            header=None, index_col=None, usecols=[state_repeat_column_index])
+        return mcmc_output_dataframe[state_repeat_column_index].shape[0]
+
+    def load_minimum_chi_squared_mcmc_output_state(self) -> pd.Series:
+        mcmc_output_dataframe = self.load_mcmc_output_states()
+        minimum_chi_squared_lens_parameter_row = mcmc_output_dataframe.iloc[
+            mcmc_output_dataframe[FitModelColumnName.CHI_SQUARED.value].argmin()]
+        return minimum_chi_squared_lens_parameter_row
+
+    def load_mcmc_output_states(self) -> pd.DataFrame:
+        mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
+                                            header=None, index_col=None)
+        lens_model_parameter_names = [name.value for name in LensModelParameterName]
+        pre_flux_column_names = [FitModelColumnName.CHI_SQUARED.value, *lens_model_parameter_names]
+        column_count = len(mcmc_output_dataframe.columns)
+        flux_values_column_count = column_count - len(pre_flux_column_names) - 1  # Last column is MCMC state repeat.
+        assert flux_values_column_count % 2 == 0  # There should be two columns for each flux band.
+        flux_values_column_names = []
+        for flux_column_index in range(flux_values_column_count // 2):
+            flux_values_column_names.append(f'flux{flux_column_index}_scale')
+            flux_values_column_names.append(f'flux{flux_column_index}_offset')
+        mcmc_output_dataframe.columns = pre_flux_column_names + flux_values_column_names + ['state_repeat_count']
+        return mcmc_output_dataframe

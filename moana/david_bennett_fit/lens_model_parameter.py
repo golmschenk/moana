@@ -4,9 +4,7 @@ Code to representing a microlensing parameter.
 from __future__ import annotations
 
 import re
-import numpy as np
 import pandas as pd
-from enum import Enum
 from io import StringIO
 from pathlib import Path
 from typing import Union, Dict
@@ -15,23 +13,8 @@ from file_read_backwards import FileReadBackwards
 
 
 # noinspection SpellCheckingInspection
-from moana.light_curve import FitModelColumnName
-
-
-class LensModelParameterName(Enum):
-    # TODO: These need better names
-    INVERSE_EINSTEIN_CROSSING_TIME = '1/t_E'
-    MINIMUM_APPROACH_TIME = 't0'
-    MINIMUM_APPROACH_DISTANCE = 'umin'
-    SECONDARY_SEPARATION = 'sep'
-    SECONDARY_THETA = 'theta'
-    SECONDARY_EPSILON = 'eps1'
-    INVERSE_T_BIN = '1/Tbin'
-    V_SEPARATION = 'v_sep'
-    T_STAR = 'Tstar'
-    T_FIX = 't_fix'
-    PI_ER = 'piEr'
-    PI_ETH = 'pieth'
+from moana.david_bennett_fit.names import LensModelParameterName
+from moana.david_bennett_fit.run import Run
 
 
 class LensModelParameter:
@@ -108,15 +91,9 @@ class LensModelParameter:
     @classmethod
     def dictionary_from_lowest_chi_squared_from_mcmc_run_output(cls, mcmc_run_path: Path
                                                                 ) -> Dict[str, LensModelParameter]:
-        lens_model_parameter_names = [name.value for name in LensModelParameterName]
-        column_names = [FitModelColumnName.CHI_SQUARED.value, *lens_model_parameter_names]
-        mcmc_output_dataframe = pd.read_csv(mcmc_run_path.joinpath('mcmc_run_1.dat'), delim_whitespace=True,
-                                            usecols=list(range(len(column_names))), skipinitialspace=True, header=None,
-                                            index_col=None, names=column_names)
-        minimum_chi_squared_lens_parameter_row = mcmc_output_dataframe.iloc[
-            mcmc_output_dataframe[FitModelColumnName.CHI_SQUARED.value].argmin()]
+        minimum_chi_squared_lens_parameter_row = Run(mcmc_run_path.parent).load_minimum_chi_squared_mcmc_output_state()
         lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(
-            mcmc_run_path.joinpath('run_1.in'))
+            mcmc_run_path.parent.joinpath('run_1.in'))
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
             lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name]
         return lens_model_parameter_dictionary

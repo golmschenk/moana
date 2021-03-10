@@ -98,16 +98,33 @@ class DavidBennettFitRunner:
         self.generate_run_files()
         self.run_algorithm()
 
-    def mcmc(self, steps_to_run: int = 2e6):
+    def mcmc(self, steps_to_run: int = int(2e6), use_covariance: bool = False,
+             rows_to_include_in_covariance: Optional[int] = None, rows_to_exclude_in_covariance: Optional[int] = None):
         if self.run.mcmc_output_file_path.exists():
             existing_steps = self.run.get_mcmc_output_file_state_count()
             steps_to_run -= existing_steps
         if steps_to_run < 1:
             print('MCMC output already has desired steps.')
             return
+        covariance_string = ''
+        if use_covariance:
+            assert rows_to_include_in_covariance is None or rows_to_exclude_in_covariance is None
+            total_rows = self.run.get_mcmc_output_file_row_count()
+            if rows_to_include_in_covariance is not None:
+                assert rows_to_include_in_covariance <= total_rows
+                rows_to_delete = total_rows - rows_to_include_in_covariance
+            elif rows_to_exclude_in_covariance is not None:
+                assert rows_to_exclude_in_covariance < total_rows
+                rows_to_delete = rows_to_exclude_in_covariance
+            else:
+                raise ValueError('When using covariance, either rows to exclude or include must be specified.')
+            total_rows = self.run.get_mcmc_output_file_row_count()
+            covariance_string = f'2.3 0.7 {rows_to_delete} {total_rows}'
+        else:
+            assert rows_to_include_in_covariance is None and rows_to_exclude_in_covariance is None
         self.instructions = 'SET EPS 1.e-5\n' \
                             'SET ERR 2.0\n' \
-                            f'OSEEK {steps_to_run}\n' \
+                            f'OSEEK {steps_to_run} {covariance_string}\n' \
                             'EXIT\n'
         self.generate_run_files()
         self.run_algorithm()

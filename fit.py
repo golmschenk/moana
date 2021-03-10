@@ -9,7 +9,8 @@ from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorith
 from moana.david_bennett_fit.light_curve_with_instrument_parameters import LightCurveWithInstrumentParameters
 from moana.david_bennett_fit.run import Run
 from moana.david_bennett_fit.runner import DavidBennettFitRunner
-from moana.david_bennett_fit.lens_model_parameter import LensModelParameter, LensModelParameterName
+from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
+from moana.david_bennett_fit.names import LensModelParameterName
 from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiaison
 from moana.light_curve import LightCurve as LightCurve, ColumnName
 
