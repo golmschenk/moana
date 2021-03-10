@@ -89,6 +89,13 @@ class DavidBennettFitRunner:
         self.lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
             self.fit_run_directory.joinpath('run_2.in'))
 
+    def calculate_residuals(self):
+        self.instructions = 'SET EPS   1.e-5\n' \
+                            'SET ERR     0.2\n' \
+                            'EXIT\n'
+        self.generate_run_files()
+        self.run_algorithm()
+
     def fit(self):
         self.instructions = 'SET EPS   1.e-5\n' \
                             'DSEEK      3000\n' \
