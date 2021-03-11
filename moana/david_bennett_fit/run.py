@@ -75,8 +75,20 @@ class Run:
         split_name1 = run1.path.name.split('_')
         split_display_name0 = [part if part not in split_name1 else '...' for part in split_name0]
         split_display_name1 = [part if part not in split_name0 else '...' for part in split_name1]
-        run0.display_name = '_'.join(split_display_name0)
-        run1.display_name = '_'.join(split_display_name1)
+
+        def remove_repeat_ellipsis(string_list: List[str]):
+            string_list_without_repeat_ellipsis = []
+            previous_part = ''
+            for part in string_list:
+                if not (part == '...' and previous_part == '...'):
+                    string_list_without_repeat_ellipsis.append(part)
+                previous_part = part
+            return string_list_without_repeat_ellipsis
+
+        shorter_split_name0 = remove_repeat_ellipsis(split_display_name0)
+        shorter_split_name1 = remove_repeat_ellipsis(split_display_name1)
+        run0.display_name = '_'.join(shorter_split_name0)
+        run1.display_name = '_'.join(shorter_split_name1)
 
     @property
     def mcmc_output_file_path(self) -> Path:
