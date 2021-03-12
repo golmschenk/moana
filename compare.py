@@ -5,12 +5,13 @@ from moana.david_bennett_fit.run import Run
 from moana.viewer.caustic_crossing_viewer import CausticCrossingViewer
 from moana.viewer.caustic_topology_viewer import CausticTopologyViewer
 from moana.viewer.delta_chi_squared_viewer import ChiSquaredViewer
+from moana.viewer.galatic_model_viewer import GalacticModelViewer
 
 from moana.viewer.run_modifier import RunModifier
 from moana.viewer.run_fit_viewer import RunFitViewer
 
-run1 = Run(Path('data/mb20208/runs/close_detailed_moa_mcmc0_start_from_fit1_2021-02-18-11-17-07'))
-run0 = Run(Path('data/mb20208/runs/close_detailed_moa_parallax_mcmc0_start_from_fit1_2021-02-18-11-17-07'))
+run1 = Run(Path('data/mb20208/runs/close_detailed_moa_parallax_mcmc1_continue0_calc_2021-03-11-18-50-48'))
+run0 = Run(Path('data/mb20208/runs/wide_detailed_moa_parallax_mcmc1_continue0_calc_2021-03-11-18-50-48'))
 Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 
 run_modifier = RunModifier()
@@ -39,7 +40,10 @@ bottom_parameter_comparison_table = viewer.create_run_parameter_comparison_table
 cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models(run0, run1)
 cumulative_delta_chi_squared_figure.sizing_mode = 'stretch_width'
 
+galactic_model_cumulative_distributions = GalacticModelViewer.comparison_for_runs(run0, run1)
+
 column = Column(parameter_comparison_table, side_by_side_clone_comparison_view, caustic_row,
-                bottom_parameter_comparison_table, cumulative_delta_chi_squared_figure)
+                bottom_parameter_comparison_table, cumulative_delta_chi_squared_figure,
+                galactic_model_cumulative_distributions)
 column.sizing_mode = 'stretch_width'
 show(column)
