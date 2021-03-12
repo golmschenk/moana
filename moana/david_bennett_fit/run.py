@@ -150,10 +150,10 @@ class Run:
             a2_pattern = r'\s*A2\w+\s*=\s*([+-]?\d+\.?\d*)\s*\+/-\s*(\d+\.?\d*)'
             match = re.search(a0_pattern + a2_pattern, normalization_parameter_line)
             light_curve_normalization_parameters = {
-                'a0': match.group(2),
-                'a0_error': match.group(3),
-                'a2': match.group(4),
-                'a2_error': match.group(5)
+                'a0': float(match.group(2)),
+                'a0_error': float(match.group(3)),
+                'a2': float(match.group(4)),
+                'a2_error': float(match.group(5))
             }
             normalization_parameters[match.group(1)] = light_curve_normalization_parameters
         return pd.DataFrame(normalization_parameters)
