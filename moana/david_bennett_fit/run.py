@@ -3,9 +3,12 @@ Code to represent an existing run.
 """
 from __future__ import annotations
 
+import re
 import pandas as pd
 from pathlib import Path
 from typing import Optional, List
+
+from file_read_backwards import FileReadBackwards
 
 from moana.david_bennett_fit.names import LensModelParameterName
 from moana.dbc import Output
@@ -60,6 +63,10 @@ class Run:
     @property
     def output_input_file_path(self) -> Path:
         return self.path.joinpath(self.output_input_file_name)
+
+    @property
+    def main_output_file_path(self) -> Path:
+        return self.path.joinpath(self.david_bennett_run_name + '.out')
 
     @property
     def residual_file_path(self) -> Path:
@@ -126,3 +133,27 @@ class Run:
             flux_values_column_names.append(f'flux{flux_column_index}_offset')
         mcmc_output_dataframe.columns = pre_flux_column_names + flux_values_column_names + ['state_repeat_count']
         return mcmc_output_dataframe
+
+    def load_normalization_parameters_from_main_output_file(self) -> pd.DataFrame:
+        normalization_parameter_lines = []
+        with FileReadBackwards(self.main_output_file_path) as file_read_backwards:
+            while not file_read_backwards.readline().strip().startswith('Caustic crossings found at'):
+                pass
+            while True:
+                line = file_read_backwards.readline()
+                if line.strip().startswith('Normalization parameters'):
+                    break
+                normalization_parameter_lines.append(line)
+        normalization_parameters = {}
+        for normalization_parameter_line in normalization_parameter_lines:
+            a0_pattern = r'\s*A0(\w+)\s*=\s*([+-]?\d+\.?\d*)\s*\+/-\s*(\d+\.?\d*)'
+            a2_pattern = r'\s*A2\w+\s*=\s*([+-]?\d+\.?\d*)\s*\+/-\s*(\d+\.?\d*)'
+            match = re.search(a0_pattern + a2_pattern, normalization_parameter_line)
+            light_curve_normalization_parameters = {
+                'a0': match.group(2),
+                'a0_error': match.group(3),
+                'a2': match.group(4),
+                'a2_error': match.group(5)
+            }
+            normalization_parameters[match.group(1)] = light_curve_normalization_parameters
+        return pd.DataFrame(normalization_parameters)
