@@ -40,7 +40,7 @@ bottom_parameter_comparison_table = viewer.create_run_parameter_comparison_table
 cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models(run0, run1)
 cumulative_delta_chi_squared_figure.sizing_mode = 'stretch_width'
 
-galactic_model_cumulative_distributions = GalacticModelViewer.comparison_for_runs(run0, run1)
+galactic_model_cumulative_distributions = GalacticModelViewer.comparison_for_runs([run0, run1])
 
 column = Column(parameter_comparison_table, side_by_side_clone_comparison_view, caustic_row,
                 bottom_parameter_comparison_table, cumulative_delta_chi_squared_figure,
