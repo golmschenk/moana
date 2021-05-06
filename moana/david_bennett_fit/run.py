@@ -121,6 +121,18 @@ class Run:
             mcmc_output_dataframe[FitModelColumnName.CHI_SQUARED.value].argmin()]
         return minimum_chi_squared_lens_parameter_row
 
+    def remove_bad_chi_squared_rows_from_mcmc_file(self, multiple_of_best_threshold: float = 2.0):
+        minimum_chi_squared_lens_parameter_row = self.load_minimum_chi_squared_mcmc_output_state()
+        minimum_chi_squared = minimum_chi_squared_lens_parameter_row[0]
+        replacement_path = self.mcmc_output_file_path.parent.joinpath(self.mcmc_output_file_path.name + '.tmp')
+        with self.mcmc_output_file_path.open('r') as old_file, replacement_path.open('w') as new_file:
+            for line in old_file.readlines():
+                line_chi_squared = float(line.strip().split(' ')[0])
+                if line_chi_squared < minimum_chi_squared * multiple_of_best_threshold:
+                    new_file.write(line)
+        shutil.copy(replacement_path, self.mcmc_output_file_path)
+        replacement_path.unlink()
+
     def load_mcmc_output_states(self) -> pd.DataFrame:
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
                                             header=None, index_col=None)
