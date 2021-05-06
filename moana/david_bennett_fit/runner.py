@@ -107,12 +107,6 @@ class DavidBennettFitRunner:
 
     def mcmc(self, steps_to_run: int = int(2e6), use_covariance: bool = False,
              rows_to_include_in_covariance: Optional[int] = None, rows_to_exclude_in_covariance: Optional[int] = None):
-        if self.run.mcmc_output_file_path.exists():
-            existing_steps = self.run.get_mcmc_output_file_state_count()
-            steps_to_run -= existing_steps
-        if steps_to_run < 1:
-            print('MCMC output already has desired steps.')
-            return
         covariance_string = ''
         if use_covariance:
             assert rows_to_include_in_covariance is None or rows_to_exclude_in_covariance is None
@@ -129,6 +123,12 @@ class DavidBennettFitRunner:
             covariance_string = f'2.3 0.7 {rows_to_delete} {total_rows}'
         else:
             assert rows_to_include_in_covariance is None and rows_to_exclude_in_covariance is None
+        if self.run.mcmc_output_file_path.exists():
+            existing_steps = self.run.get_mcmc_output_file_state_count()
+            steps_to_run -= existing_steps
+        if steps_to_run < 1:
+            print('MCMC output already has desired steps.')
+            return
         self.instructions = 'SET EPS 1.e-5\n' \
                             'SET ERR 2.0\n' \
                             f'OSEEK {steps_to_run} {covariance_string}\n' \
