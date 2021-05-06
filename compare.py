@@ -13,6 +13,8 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 run1 = Run(Path('data/mb20208/runs/close_detailed_moa_parallax_mcmc1_continue0_calc_2021-03-11-18-50-48'))
 run0 = Run(Path('data/mb20208/runs/wide_detailed_moa_parallax_mcmc1_continue0_calc_2021-03-11-18-50-48'))
 Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
+run0.dbc_output.load()
+run1.dbc_output.load()
 
 run_modifier = RunModifier()
 run_modifier.limit_date_range(run0.dbc_output, 9075, 9125)

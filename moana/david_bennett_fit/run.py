@@ -4,6 +4,8 @@ Code to represent an existing run.
 from __future__ import annotations
 
 import re
+import shutil
+
 import pandas as pd
 from pathlib import Path
 from typing import Optional, List
@@ -157,3 +159,14 @@ class Run:
             }
             normalization_parameters[match.group(1)] = light_curve_normalization_parameters
         return pd.DataFrame(normalization_parameters)
+
+    def delete_first_lines_from_mcmc_file(self, number_of_lines_to_delete: int):
+        replacement_path = self.mcmc_output_file_path.parent.joinpath(self.mcmc_output_file_path.name + '.tmp')
+        with self.mcmc_output_file_path.open('r') as old_file, replacement_path.open('w') as new_file:
+            for line_index, line in enumerate(old_file.readlines()):
+                if line_index < number_of_lines_to_delete:
+                    continue
+                else:
+                    new_file.write(line)
+        shutil.copy(replacement_path, self.mcmc_output_file_path)
+        replacement_path.unlink()

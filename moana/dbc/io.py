@@ -24,7 +24,7 @@ class Output:
         
     def load(self, resid=True, model=True):
         """Method that load the output files."""
-        if self.param == None:
+        if self.param is None:
             self.__load_model()
         if resid:
             self.__load_resid()
