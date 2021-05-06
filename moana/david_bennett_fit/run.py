@@ -104,16 +104,16 @@ class Run:
         return self.path.joinpath('mcmc_run_1.dat')
 
     def get_mcmc_output_file_state_count(self) -> int:
-        state_repeat_column_index = 17
+        state_repeat_column_index = -1
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
-                                            header=None, index_col=None, usecols=[state_repeat_column_index])
-        return mcmc_output_dataframe[state_repeat_column_index].sum()
+                                            header=None, index_col=None)
+        return mcmc_output_dataframe.iloc[:, state_repeat_column_index].sum()
 
     def get_mcmc_output_file_row_count(self) -> int:
-        state_repeat_column_index = 17
+        state_repeat_column_index = -1
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
-                                            header=None, index_col=None, usecols=[state_repeat_column_index])
-        return mcmc_output_dataframe[state_repeat_column_index].shape[0]
+                                            header=None, index_col=None)
+        return mcmc_output_dataframe.iloc[:, state_repeat_column_index].shape[0]
 
     def load_minimum_chi_squared_mcmc_output_state(self) -> pd.Series:
         mcmc_output_dataframe = self.load_mcmc_output_states()
