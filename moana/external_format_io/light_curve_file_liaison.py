@@ -129,9 +129,26 @@ class LightCurveFileLiaison:
                                                     ColumnName.TIME__MICROLENSING_HJD.value])
         return light_curve_data_frame
 
+    @staticmethod
+    def load_omega_light_curve_data_frame(omega_file_path: Path) -> pd.DataFrame:
+        """
+        Loads a omega format file in the project light curve data frame format.
+
+        :param omega_file_path: The path to the pysis file.
+        :return: The data frame with the light curve information.
+        """
+        light_curve_data_frame = pd.read_csv(omega_file_path, delim_whitespace=True, skipinitialspace=True,
+                                             comment='#', names=[ColumnName.TIME__HJD.value,
+                                                                 ColumnName.MAGNITUDE.value,
+                                                                 ColumnName.MAGNITUDE_ERROR.value])
+        light_curve_data_frame[ColumnName.TIME__MICROLENSING_HJD.value] = \
+            light_curve_data_frame[ColumnName.TIME__HJD.value] - 2450000
+        light_curve_data_frame.drop(columns=[ColumnName.TIME__HJD.value])
+        return light_curve_data_frame
+
 
 if __name__ == '__main__':
     light_curve_file_liaison = LightCurveFileLiaison()
-    light_curve_file_liaison.load_pysis_light_curve_data_frame(
-        Path('data/mb20208/external_data/Auckland_MB20208R.pysis')
+    light_curve_file_liaison.load_omega_light_curve_data_frame(
+        Path('data/mb20208/external_data/OMEGA_MOA_2020_BLG_208_gp.dat')
     )

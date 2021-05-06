@@ -21,6 +21,7 @@ event_name = 'MB20208'
 
 class ColumnName(Enum):
     TIME__MICROLENSING_HJD = 'time__microlensing_hjd'
+    TIME__HJD = 'time__hjd'
     FLUX = 'flux'
     FLUX_ERROR = 'flux_error'
     MAGNITUDE = 'magnitude'
