@@ -76,11 +76,11 @@ class LightCurveFileLiaison:
         :return: The light curve data frame.
         """
         lco_data_frame = pd.read_csv(lco_input_path, delim_whitespace=True,
-                                     names=['hjd', 'magnification', 'magnification_error'])
+                                     names=['hjd', 'magnitude', 'magnitude_error'])
         david_bennett_data_frame = pd.DataFrame({
             ColumnName.TIME__MICROLENSING_HJD.value: lco_data_frame['hjd'] - 2450000,
-            ColumnName.MAGNITUDE.value: lco_data_frame['magnification'],
-            ColumnName.MAGNITUDE_ERROR.value: lco_data_frame['magnification_error']
+            ColumnName.MAGNITUDE.value: lco_data_frame['magnitude'],
+            ColumnName.MAGNITUDE_ERROR.value: lco_data_frame['magnitude_error']
         })
         return david_bennett_data_frame
 
@@ -99,11 +99,11 @@ class LightCurveFileLiaison:
         """
         dophot_data_frame = pd.read_csv(dophot_input_path, delim_whitespace=True, skipinitialspace=True,
                                         comment='#', usecols=[0, 1, 2],
-                                        names=['microlensing_hjd', 'magnification', 'magnification_error'])
+                                        names=['microlensing_hjd', 'magnitude', 'magnitude_error'])
         david_bennett_data_frame = pd.DataFrame({
             ColumnName.TIME__MICROLENSING_HJD.value: dophot_data_frame['microlensing_hjd'],
-            ColumnName.MAGNITUDE.value: dophot_data_frame['magnification'],
-            ColumnName.MAGNITUDE_ERROR.value: dophot_data_frame['magnification_error']
+            ColumnName.MAGNITUDE.value: dophot_data_frame['magnitude'],
+            ColumnName.MAGNITUDE_ERROR.value: dophot_data_frame['magnitude_error']
         })
         david_bennett_data_frame = david_bennett_data_frame[
             david_bennett_data_frame[ColumnName.MAGNITUDE.value] != 0
