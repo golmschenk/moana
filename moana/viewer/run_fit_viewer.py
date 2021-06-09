@@ -109,10 +109,11 @@ class RunFitViewer:
         comparison_data_frame = pd.DataFrame(comparison_dictionary)
         table_columns = []
         for column_name in comparison_data_frame.columns:
-            formatter = None
             if is_numeric_dtype(comparison_data_frame[column_name].dtype):
                 formatter = ScientificFormatter(precision=5)
-            table_columns.append(TableColumn(field=column_name, title=column_name, formatter=formatter))
+                table_columns.append(TableColumn(field=column_name, title=column_name, formatter=formatter))
+            else:
+                table_columns.append(TableColumn(field=column_name, title=column_name))
         comparison_data_table = DataTable(columns=table_columns, source=ColumnDataSource(comparison_data_frame),
                                           index_position=None)
         comparison_data_table.sizing_mode = 'stretch_width'
