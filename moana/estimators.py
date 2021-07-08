@@ -365,7 +365,7 @@ class SampledPosterior:
                             ax[i][j].yaxis.set_major_locator(MultipleLocator(ax_options[labels[i]][3][0]))
                             ax[i][j].yaxis.set_minor_locator(AutoMinorLocator(ax_options[labels[i]][3][1]))
                     else:
-                        if diagonal=='chi2':
+                        if diagonal == 'chi2' or diagonal == 'chi_squared':
                             x = np.linspace(samples[labels[j]].min(), samples[labels[j]].max(), 100)
                             xx = list()
                             yy = list()
