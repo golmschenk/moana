@@ -1,4 +1,5 @@
 import matplotlib as mpl
+from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, MaxNLocator, AutoMinorLocator
 import moana
@@ -275,6 +276,7 @@ class SampledPosterior:
         dchi2_list = np.array([16, 9, 4, 1, 0])
         colors = [spectral_map(255.0/255.0), spectral_map(170.0/255.0), 
             spectral_map(85.0/255.0), spectral_map(0.0)]
+        colors = get_cmap('viridis', 4).colors
 
         samples = self.sample.copy(deep=True)
         samples['reject'] = 0
