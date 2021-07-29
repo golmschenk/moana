@@ -48,12 +48,19 @@ def create_all_mb20208_light_curves() -> List[LightCurveWithInstrumentParameters
         light_curves.append(
             LightCurveWithInstrumentParameters(suffix, data_frame, instrument_parameters_dictionary[suffix]))
 
-    lco1_light_curve_data_frame = external_liaison.load_lco_light_curve(
-            Path('data/mb20208/external_data/MB20208_cpt01.mag'))
-    lco1_suffix = 'lco1'
-    lco1_light_curve = LightCurveWithInstrumentParameters(
-        lco1_suffix, lco1_light_curve_data_frame, instrument_parameters_dictionary[lco1_suffix])
-    light_curves.append(lco1_light_curve)
+    saao_light_curve_data_frame = external_liaison.load_saao_light_curve(
+        Path('data/mb20208/external_data/MB20208_cpt01.mag'))
+    saao_suffix = 'saao'
+    saao_light_curve = LightCurveWithInstrumentParameters(
+        saao_suffix, saao_light_curve_data_frame, instrument_parameters_dictionary[saao_suffix])
+    light_curves.append(saao_light_curve)
+    saao_file_dictionary = {'saao': 'data/mb20208/external_data/MB20208_cpt01.mag',
+                            'omegag': 'data/mb20208/external_data/OMEGA_MOA_2020_BLG_208_gp.dat',
+                            'omegai': 'data/mb20208/external_data/OMEGA_MOA_2020_BLG_208_ip.dat'}
+    for suffix, file_name in saao_file_dictionary.items():
+        data_frame = external_liaison.load_saao_light_curve(Path(f'data/mb20208/external_data/{file_name}'))
+        light_curves.append(
+            LightCurveWithInstrumentParameters(suffix, data_frame, instrument_parameters_dictionary[suffix]))
 
     pysis_file_dictionary = {'kum': 'Kumeu_MB20208R.pysis',
                              'auck': 'Auckland_MB20208R.pysis',

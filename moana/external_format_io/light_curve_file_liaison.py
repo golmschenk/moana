@@ -63,24 +63,24 @@ class LightCurveFileLiaison:
 
     def convert_light_curve_file_from_lco_format_to_david_bennet_format(self, lco_input_path: Path,
                                                                         david_bennett_output_path: Path):
-        david_bennett_data_frame = self.load_lco_light_curve(lco_input_path)
+        david_bennett_data_frame = self.load_saao_light_curve(lco_input_path)
         DavidBennettLightCurveFileLiaison.save_light_curve_to_david_bennett_format_file(david_bennett_output_path,
                                                                                         david_bennett_data_frame)
 
     @staticmethod
-    def load_lco_light_curve(lco_input_path: Path) -> pd.DataFrame:
+    def load_saao_light_curve(saao_input_path: Path) -> pd.DataFrame:
         """
-        Loads a light curve from LCO format.
+        Loads a light curve from SAAO format.
 
-        :param lco_input_path: The path to the LCO file.
+        :param saao_input_path: The path to the SAAO file.
         :return: The light curve data frame.
         """
-        lco_data_frame = pd.read_csv(lco_input_path, delim_whitespace=True,
-                                     names=['hjd', 'magnitude', 'magnitude_error'])
+        saao_data_frame = pd.read_csv(saao_input_path, delim_whitespace=True,
+                                      names=['hjd', 'magnitude', 'magnitude_error'], comment='#')
         david_bennett_data_frame = pd.DataFrame({
-            ColumnName.TIME__MICROLENSING_HJD.value: lco_data_frame['hjd'] - 2450000,
-            ColumnName.MAGNITUDE.value: lco_data_frame['magnitude'],
-            ColumnName.MAGNITUDE_ERROR.value: lco_data_frame['magnitude_error']
+            ColumnName.TIME__MICROLENSING_HJD.value: saao_data_frame['hjd'] - 2450000,
+            ColumnName.MAGNITUDE.value: saao_data_frame['magnitude'],
+            ColumnName.MAGNITUDE_ERROR.value: saao_data_frame['magnitude_error']
         })
         return david_bennett_data_frame
 
