@@ -29,8 +29,8 @@ side_by_side_clone_comparison_view = Row(left_comparison_view, right_comparison_
 side_by_side_clone_comparison_view.sizing_mode = 'stretch_width'
 
 caustic_topology_figure = CausticTopologyViewer.figure_for_multiple_runs([run0, run1])
-caustic_crossing_figure0 = CausticCrossingViewer.figure_for_run_path(run0)
-caustic_crossing_figure1 = CausticCrossingViewer.figure_for_run_path(run1)
+caustic_crossing_figure0 = CausticCrossingViewer.figure_for_run(run0)
+caustic_crossing_figure1 = CausticCrossingViewer.figure_for_run(run1)
 caustic_figures = [caustic_topology_figure, caustic_crossing_figure0, caustic_crossing_figure1]
 for figure in caustic_figures:
     figure.sizing_mode = 'stretch_width'

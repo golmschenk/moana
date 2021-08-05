@@ -7,6 +7,7 @@ import numpy as np
 
 from bokeh.models import Title, PanTool, BoxZoomTool, WheelZoomTool, ResetTool
 from bokeh.plotting import Figure
+from bokeh.models import DataRange1d
 
 import moana
 from moana.david_bennett_fit.run import Run
@@ -15,7 +16,7 @@ from moana.viewer.color_mapper import ColorMapper
 
 class CausticCrossingViewer:
     @classmethod
-    def figure_for_run_path(cls, run: Run, title: Union[None, str] = None) -> Figure:
+    def figure_for_run(cls, run: Run, title: Union[None, str] = None) -> Figure:
         figure = Figure(match_aspect=True, tools=[PanTool(), BoxZoomTool(match_aspect=True),
                                                   WheelZoomTool(zoom_on_axis=False), ResetTool()])
         if title is not None:
@@ -44,14 +45,17 @@ class CausticCrossingViewer:
         # Upper part of the caustic (first half of the caustic)
         real_component0 = np.real(half_caustic)
         imaginary_component0 = np.imag(half_caustic)
-        caustic_color = 'red'
-        caustic_glpyh_radius = 0.01
-        figure.diamond(x=real_component0, y=imaginary_component0, line_color=caustic_color, fill_alpha=0, size=2)
 
         # Lower part of the caustic (it is symmetric): 2nd half of the caustic
         real_component1 = np.real(half_caustic)
         imaginary_component1 = -np.imag(half_caustic)
-        figure.diamond(x=real_component1, y=imaginary_component1, line_color=caustic_color, fill_alpha=0, size=2)
+
+        real_component = np.concatenate([real_component0, real_component1])
+        imaginary_component = np.concatenate([imaginary_component0, imaginary_component1])
+        caustic_color = 'red'
+        caustic_glpyh_radius = 0.01
+        figure.diamond(x=real_component, y=imaginary_component, line_color=caustic_color,
+                       fill_alpha=0, size=2)
 
         # Plot the source trajectory
         x = run.dbc_output.fitlc['xs']
@@ -59,4 +63,21 @@ class CausticCrossingViewer:
         color_mapper = ColorMapper()
         fit_color = color_mapper.get_fit_color(str(run.path))
         figure.line(x=x, y=y, color=fit_color, line_width=2)
+
+        x_arithmetic_range = real_component.max() - real_component.min()
+        y_arithmetic_range = imaginary_component.max() - imaginary_component.min()
+        x_padding = (x_arithmetic_range) * 0.1
+        y_padding = (y_arithmetic_range) * 0.1
+
+        if x_arithmetic_range > y_arithmetic_range:
+            figure.x_range.start = real_component.min() - x_padding
+            figure.x_range.end = real_component.max() + x_padding
+            figure.y_range.start = imaginary_component.mean() - (x_arithmetic_range / 2)
+            figure.y_range.end = imaginary_component.mean() + (x_arithmetic_range / 2)
+        else:
+            figure.x_range.start = real_component.mean() - (y_arithmetic_range / 2)
+            figure.x_range.end = real_component.mean() + (y_arithmetic_range / 2)
+            figure.y_range.start = imaginary_component.min() - y_padding
+            figure.y_range.end = imaginary_component.max() + y_padding
+
         return figure
