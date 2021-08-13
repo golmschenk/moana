@@ -121,7 +121,7 @@ class InstrumentParameters:
                 'limb_darkening_a': 0.0,
                 'limb_darkening_b': 0.0,
                 'time_offset': instrument_parameters.time_offset,
-                'suffix': instrument_parameters.suffix,
+                'suffix': f"'{instrument_parameters.suffix}'",
                 'longitude': longitude,
                 'latitude': latitude,
             })

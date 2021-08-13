@@ -51,7 +51,7 @@ class LensModelParameter:
             names=['index', 'name', 'value', 'temperature', 'minimum_limit', 'maximum_limit'],
             index_col='index', delim_whitespace=True, skipinitialspace=True, quotechar="'")
         lens_model_parameter_dictionary = {}
-        allowed_names = [name.value for name in LensModelParameterName]
+        allowed_names = [name for name in LensModelParameterName]
         for index, row in lens_model_parameter_data_frame.iterrows():
             assert row['name'] in allowed_names
             row_dictionary = row.dropna().to_dict()
@@ -68,7 +68,7 @@ class LensModelParameter:
         :param parameter_dictionary: The dictionary of parameters to convert the format of.
         :return: The string of the parameters in David Bennett's format.
         """
-        available_names = [name.value for name in LensModelParameterName]
+        available_names = [name for name in LensModelParameterName]
         for key in parameter_dictionary.keys():
             assert key in available_names
         parameter_dictionary_list = []
@@ -111,7 +111,7 @@ class LensModelParameter:
     @classmethod
     def dictionary_from_lowest_chi_squared_from_run_output(cls, run_path: Path
                                                            ) -> Dict[str, LensModelParameter]:
-        column_names = [name.value for name in LensModelParameterName]
+        column_names = [name for name in LensModelParameterName]
         with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:
             while True:
                 line = file_read_backwards.readline()
