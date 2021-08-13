@@ -29,6 +29,8 @@ class DavidBennettFitRunner:
             light_curve_with_instrument_parameters_list
         self.fitting_algorithm_parameters: FittingAlgorithmParameters = fitting_algorithm_parameters
         self.instructions: Optional[str] = None
+        self.david_bennett_fitting_executable_path: Path = Path(
+            'david_bennett_fitting/fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO')
 
     def generate_run_files(self):
         """
@@ -73,7 +75,7 @@ class DavidBennettFitRunner:
         return run_configuration_lines
 
     def run_algorithm(self):
-        path_to_bennett_fitting_executable = Path('fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO').absolute()
+        path_to_bennett_fitting_executable = self.david_bennett_fitting_executable_path.absolute()
 
         run_path = self.fit_run_directory.joinpath('run_1.in')
 
