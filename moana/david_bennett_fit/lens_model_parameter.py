@@ -7,13 +7,12 @@ import re
 import pandas as pd
 from io import StringIO
 from pathlib import Path
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 from tabulate import tabulate
 from file_read_backwards import FileReadBackwards
 
-
 # noinspection SpellCheckingInspection
-from moana.david_bennett_fit.names import LensModelParameterName
+from moana.david_bennett_fit.names import LensModelParameterName, LensModelParameterNameBase
 from moana.david_bennett_fit.run import Run
 
 
@@ -28,11 +27,14 @@ class LensModelParameter:
         self.maximum_limit: Union[float, None] = maximum_limit
 
     @classmethod
-    def dictionary_from_david_bennett_input_file(cls, input_file_path: Path) -> Dict[str, LensModelParameter]:
+    def dictionary_from_david_bennett_input_file(
+            cls, input_file_path: Path, lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName
+    ) -> Dict[str, LensModelParameter]:
         """
         Loads the lens model parameters from a David Bennett input file.
 
         :param input_file_path: The path to the input file.
+        :param lens_parameter_name_enum: The lens parameter name enum to use for this input file.
         :return: A dictionary of the lens parameters.
         """
         with input_file_path.open() as input_file:
@@ -51,7 +53,7 @@ class LensModelParameter:
             names=['index', 'name', 'value', 'temperature', 'minimum_limit', 'maximum_limit'],
             index_col='index', delim_whitespace=True, skipinitialspace=True, quotechar="'")
         lens_model_parameter_dictionary = {}
-        allowed_names = [name for name in LensModelParameterName]
+        allowed_names = [name for name in lens_parameter_name_enum]
         for index, row in lens_model_parameter_data_frame.iterrows():
             assert row['name'] in allowed_names
             row_dictionary = row.dropna().to_dict()
@@ -60,15 +62,18 @@ class LensModelParameter:
         return lens_model_parameter_dictionary
 
     @classmethod
-    def david_bennett_input_string_from_dictionary(cls, parameter_dictionary: Dict[str, LensModelParameter]) -> str:
+    def david_bennett_input_string_from_dictionary(
+            cls, parameter_dictionary: Dict[str, LensModelParameter],
+            lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName) -> str:
         """
         Converts a dictionary of lens model parameters to the input format expected by David Bennett's code.
         To prevent mistakes, requires exactly the parameters expected by David Bennett's code, no more or less.
 
         :param parameter_dictionary: The dictionary of parameters to convert the format of.
+        :param lens_parameter_name_enum: The lens parameter name enum to use for this input file.
         :return: The string of the parameters in David Bennett's format.
         """
-        available_names = [name for name in LensModelParameterName]
+        available_names = [name for name in lens_parameter_name_enum]
         for key in parameter_dictionary.keys():
             assert key in available_names
         parameter_dictionary_list = []
@@ -99,7 +104,8 @@ class LensModelParameter:
         return lens_model_parameter_dictionary
 
     @classmethod
-    def dictionary_from_most_recent_mcmc_run_state(cls, mcmc_run_path: Path, start: int) -> Dict[str, LensModelParameter]:
+    def dictionary_from_most_recent_mcmc_run_state(cls, mcmc_run_path: Path, start: int) -> Dict[
+        str, LensModelParameter]:
         states_data_frame = Run(mcmc_run_path).load_mcmc_output_states()
         last_state_row = states_data_frame.iloc[start]
         lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(
@@ -109,9 +115,10 @@ class LensModelParameter:
         return lens_model_parameter_dictionary
 
     @classmethod
-    def dictionary_from_lowest_chi_squared_from_run_output(cls, run_path: Path
-                                                           ) -> Dict[str, LensModelParameter]:
-        column_names = [name for name in LensModelParameterName]
+    def dictionary_from_lowest_chi_squared_from_run_output(
+            cls, run_path: Path, lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName
+    ) -> Dict[str, LensModelParameter]:
+        column_names = [name for name in lens_parameter_name_enum]
         with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:
             while True:
                 line = file_read_backwards.readline()
@@ -122,8 +129,9 @@ class LensModelParameter:
         lens_parameter_line = lens_parameter_line.replace('FCN call with a =', '').strip()
         lens_parameter_string_io = StringIO(lens_parameter_line)
         lens_parameter_data_frame = pd.read_csv(lens_parameter_string_io, delim_whitespace=True,
-                                            usecols=list(range(len(column_names))), skipinitialspace=True, header=None,
-                                            index_col=None, names=column_names)
+                                                usecols=list(range(len(column_names))), skipinitialspace=True,
+                                                header=None,
+                                                index_col=None, names=column_names)
         lens_parameter_row = lens_parameter_data_frame.iloc[0]
         lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(run_path.joinpath('run_1.in'))
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
