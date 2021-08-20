@@ -5,12 +5,14 @@ import datetime
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 from moana.david_bennett_fit.fitting_algorithm_parameters import FittingAlgorithmParameters
 from moana.david_bennett_fit.instrument_parameters import InstrumentParameters
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
 from moana.david_bennett_fit.light_curve_with_instrument_parameters import LightCurveWithInstrumentParameters
+from moana.david_bennett_fit.names import LensModelParameterNameBase, LensModelParameterName, \
+    BinarySourceLensModelParameterName
 from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve
 
@@ -19,16 +21,19 @@ class DavidBennettFitRunner:
     """
     A class to manage fitting runs using David Bennett's code.
     """
+
     def __init__(self, fit_run_directory: Path, lens_model_parameter_dictionary: Dict[str, LensModelParameter],
                  light_curve_with_instrument_parameters_list: List[LightCurveWithInstrumentParameters],
-                 fitting_algorithm_parameters: FittingAlgorithmParameters):
+                 fitting_algorithm_parameters: FittingAlgorithmParameters,
+                 lens_parameter_name_enum: Type[LensModelParameterNameBase] = LensModelParameterName):
         self.fit_run_directory: Path = fit_run_directory
         self.run = Run(fit_run_directory)
         self.lens_model_parameter_dictionary: Dict[str, LensModelParameter] = lens_model_parameter_dictionary
-        self.light_curve_with_instrument_parameters_list:List[LightCurveWithInstrumentParameters] = \
+        self.light_curve_with_instrument_parameters_list: List[LightCurveWithInstrumentParameters] = \
             light_curve_with_instrument_parameters_list
         self.fitting_algorithm_parameters: FittingAlgorithmParameters = fitting_algorithm_parameters
         self.instructions: Optional[str] = None
+        self.lens_parameter_name_enum: Type[LensModelParameterNameBase] = lens_parameter_name_enum
         self.david_bennett_fitting_executable_path: Path = Path(
             'david_bennett_fitting/fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO')
 
@@ -57,7 +62,7 @@ class DavidBennettFitRunner:
         datetime_string = datetime.datetime.now()
         comment_line = f'Auto-generated on {datetime_string}.\n'
         lens_model_parameter_lines = LensModelParameter.david_bennett_input_string_from_dictionary(
-            self.lens_model_parameter_dictionary)
+            self.lens_model_parameter_dictionary, lens_parameter_name_enum=self.lens_parameter_name_enum)
         blank_line = f'\n\n'
         run_configuration_lines = self.generate_run_configuration_lines()
         input_file_path = self.fit_run_directory.joinpath('run_1.in')
@@ -70,8 +75,15 @@ class DavidBennettFitRunner:
         run_configuration_lines = 'MB20208\n' \
                                   'run_\n' \
                                   'no limb\n' \
-                                  '17 53 43.80 -32 35 21.52\n' \
-                                  f'0 {"mcmc_run_1.dat" if "OSEEK" in self.instructions else ""}\n'
+                                  '17 53 43.80 -32 35 21.52\n'
+        if self.lens_parameter_name_enum == BinarySourceLensModelParameterName:
+            instrument_parameters = [light_curve.instrument_parameters
+                                     for light_curve in self.light_curve_with_instrument_parameters_list]
+            moa_r_parameter_index = InstrumentParameters.get_index_for_instrument_suffix('moa2r', instrument_parameters)
+            moa_v_parameter_index = InstrumentParameters.get_index_for_instrument_suffix('moa2v', instrument_parameters)
+            run_configuration_lines += f'{moa_r_parameter_index} {moa_v_parameter_index} 7.1 0.040308 0.003181 ' \
+                                        '0.223948 0.911340 1.580 2.995  200 1 1\n'
+        run_configuration_lines += f'0 {"mcmc_run_1.dat" if "OSEEK" in self.instructions else ""}\n'
         return run_configuration_lines
 
     def run_algorithm(self):
@@ -89,7 +101,7 @@ class DavidBennettFitRunner:
                        stdout=output_path.open('w'), stderr=subprocess.STDOUT)
 
         self.lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
-            self.fit_run_directory.joinpath('run_2.in'))
+            self.fit_run_directory.joinpath('run_2.in'), lens_parameter_name_enum=self.lens_parameter_name_enum)
 
     def calculate_residuals(self):
         self.instructions = 'SET EPS   1.e-5\n' \
@@ -100,9 +112,9 @@ class DavidBennettFitRunner:
 
     def fit(self):
         self.instructions = 'SET EPS   1.e-5\n' \
-                            'DSEEK      3000\n' \
+                            'DSEEK      6000\n' \
                             'SET ERR     0.2\n' \
-                            'DSEEK      3000\n' \
+                            'DSEEK      6000\n' \
                             'EXIT\n'
         self.generate_run_files()
         self.run_algorithm()

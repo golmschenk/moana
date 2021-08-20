@@ -7,7 +7,7 @@ import re
 import pandas as pd
 from io import StringIO
 from pathlib import Path
-from typing import Union, Dict, Optional
+from typing import Union, Dict, Optional, Type
 from tabulate import tabulate
 from file_read_backwards import FileReadBackwards
 
@@ -28,7 +28,8 @@ class LensModelParameter:
 
     @classmethod
     def dictionary_from_david_bennett_input_file(
-            cls, input_file_path: Path, lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName
+            cls, input_file_path: Path,
+            lens_parameter_name_enum: Type[LensModelParameterNameBase] = LensModelParameterName
     ) -> Dict[str, LensModelParameter]:
         """
         Loads the lens model parameters from a David Bennett input file.
@@ -64,7 +65,7 @@ class LensModelParameter:
     @classmethod
     def david_bennett_input_string_from_dictionary(
             cls, parameter_dictionary: Dict[str, LensModelParameter],
-            lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName) -> str:
+            lens_parameter_name_enum: Type[LensModelParameterNameBase] = LensModelParameterName) -> str:
         """
         Converts a dictionary of lens model parameters to the input format expected by David Bennett's code.
         To prevent mistakes, requires exactly the parameters expected by David Bennett's code, no more or less.
@@ -116,7 +117,7 @@ class LensModelParameter:
 
     @classmethod
     def dictionary_from_lowest_chi_squared_from_run_output(
-            cls, run_path: Path, lens_parameter_name_enum: LensModelParameterNameBase = LensModelParameterName
+            cls, run_path: Path, lens_parameter_name_enum: Type[LensModelParameterNameBase] = LensModelParameterName
     ) -> Dict[str, LensModelParameter]:
         column_names = [name for name in lens_parameter_name_enum]
         with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:

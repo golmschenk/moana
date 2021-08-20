@@ -1,6 +1,8 @@
 import copy
 import re
 from pathlib import Path
+from typing import Type
+
 import numpy as np
 import pandas as pd
 from bokeh.layouts import gridplot
@@ -9,6 +11,7 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
+from moana.david_bennett_fit.names import LensModelParameterNameBase, LensModelParameterName
 from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve, ColumnName
 from moana.dbc import Output
@@ -93,19 +96,33 @@ class RunFitViewer:
                                                               y_column_name='magnification_residual')
         self.add_fit_of_run_to_light_curve_and_residual_figures(run1, light_curve_figure, residual_figure1)
         self.add_fit_of_run_to_light_curve_and_residual_figures(run0, light_curve_figure, residual_figure0)
+        light_curve_figure.legend.click_policy = "hide"
         residual_figure0.legend.visible = False
         residual_figure1.legend.visible = False
         return combination_grid_plot
 
-    def create_run_parameter_comparison_table(self, run0: Run, run1: Run) -> DataTable:
-        run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run0.output_input_file_path)
-        run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(run1.output_input_file_path)
+    def create_run_parameter_comparison_table(
+            self, run0: Run, run1: Run,
+            run0_lens_parameter_enum: Type[LensModelParameterNameBase] = LensModelParameterName,
+            run1_lens_parameter_enum: Type[LensModelParameterNameBase] = LensModelParameterName
+    ) -> DataTable:
+        run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(
+            run0.output_input_file_path, lens_parameter_name_enum=run0_lens_parameter_enum)
+        run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(
+            run1.output_input_file_path, lens_parameter_name_enum=run1_lens_parameter_enum)
         comparison_dictionary = {'run': [run0.display_name, run1.display_name, 'difference'],
                                  'chisq': [run0.dbc_output.param['chisq'], run1.dbc_output.param['chisq'],
                                            run0.dbc_output.param['chisq'] - run1.dbc_output.param['chisq']]}
-        for key in run0_parameters.keys():
-            comparison_dictionary[key] = [run0_parameters[key].value, run1_parameters[key].value,
-                                          run0_parameters[key].value - run1_parameters[key].value]
+        for key in list(dict.fromkeys(list(run0_parameters.keys()) + list(run1_parameters.keys()))):
+            try:
+                run0_value = run0_parameters[key].value
+            except KeyError:
+                run0_value = np.nan
+            try:
+                run1_value = run1_parameters[key].value
+            except KeyError:
+                run1_value = np.nan
+            comparison_dictionary[key] = [run0_value, run1_value, run0_value - run1_value]
         comparison_data_frame = pd.DataFrame(comparison_dictionary)
         table_columns = []
         for column_name in comparison_data_frame.columns:
@@ -117,7 +134,7 @@ class RunFitViewer:
         comparison_data_table = DataTable(columns=table_columns, source=ColumnDataSource(comparison_data_frame),
                                           index_position=None)
         comparison_data_table.sizing_mode = 'stretch_width'
-        comparison_data_table.height = 100
+        comparison_data_table.height = 120
         return comparison_data_table
 
     def calculate_mean_relative_instrument_scale_and_shift(self, run0: Run, run1: Run) -> (float, float):
@@ -136,6 +153,9 @@ class RunFitViewer:
                                  scale_parameter_data_frame.iloc[1])
         instrument_data_count_series = run0.dbc_output.resid['sfx'].value_counts()
         instrument_data_count_series = instrument_data_count_series.filter(relative_scale_series.index)
+        for suffix in relative_scale_series.keys():
+            if suffix not in instrument_data_count_series.keys():
+                instrument_data_count_series[suffix] = 0
         relative_scale = np.average(relative_scale_series.values, weights=instrument_data_count_series.values)
         relative_shift = np.average(relative_shift_series.values, weights=instrument_data_count_series.values)
         return relative_scale, relative_shift

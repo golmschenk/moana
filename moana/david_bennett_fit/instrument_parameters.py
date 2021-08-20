@@ -97,6 +97,25 @@ class InstrumentParameters:
     @classmethod
     def david_bennett_parameter_file_string_from_list(cls, instrument_parameters_list: List[InstrumentParameters]
                                                       ) -> str:
+        parameter_data_frame = cls.create_instrument_parameter_data_frame_for_parameter_file(instrument_parameters_list)
+        list_of_lists = parameter_data_frame.values.tolist()
+        # noinspection PyTypeChecker
+        list_of_lists = [[element for element in list_ if pd.notna(element)] for list_ in list_of_lists]
+        file_string = tabulate(list_of_lists, tablefmt='plain', floatfmt='.10', headers=parameter_data_frame.columns)
+        file_string = '# ' + file_string
+        file_string = file_string.replace('\n', '\n  ')
+        file_string = file_string.replace('longitude', '').replace('latitude', '')
+        return file_string
+
+    @classmethod
+    def get_index_for_instrument_suffix(
+            cls, instrument_suffix: str, instrument_parameters_list: List[InstrumentParameters]) -> int:
+        data_frame = cls.create_instrument_parameter_data_frame_for_parameter_file(instrument_parameters_list)
+        return data_frame[data_frame['sfx'] == f"'{instrument_suffix}'"]['jclr'].iloc[0]
+
+    @classmethod
+    def create_instrument_parameter_data_frame_for_parameter_file(
+            cls, instrument_parameters_list: List[InstrumentParameters]) -> pd.DataFrame:
         measurement_type_index_generators = {
             MeasurementType.MAGNITUDE_0_BASED: iter(range(9, 15)),
             MeasurementType.MAGNITUDE_21_BASED: itertools.chain(range(15, 30), range(40, 50)),
@@ -167,11 +186,4 @@ class InstrumentParameters:
             'time_offset': 'dayoff',
             'suffix': 'sfx',
         })
-        list_of_lists = parameter_data_frame.values.tolist()
-        # noinspection PyTypeChecker
-        list_of_lists = [[element for element in list_ if pd.notna(element)] for list_ in list_of_lists]
-        file_string = tabulate(list_of_lists, tablefmt='plain', floatfmt='.10', headers=parameter_data_frame.columns)
-        file_string = '# ' + file_string
-        file_string = file_string.replace('\n', '\n  ')
-        file_string = file_string.replace('longitude', '').replace('latitude', '')
-        return file_string
+        return parameter_data_frame
