@@ -151,13 +151,12 @@ class Run:
     def load_normalization_parameters_from_main_output_file(self) -> pd.DataFrame:
         normalization_parameter_lines = []
         with FileReadBackwards(self.main_output_file_path) as file_read_backwards:
-            while not file_read_backwards.readline().strip().startswith('Caustic crossings found at'):
-                pass
             while True:
                 line = file_read_backwards.readline()
                 if line.strip().startswith('Normalization parameters'):
                     break
-                normalization_parameter_lines.append(line)
+                if line.startswith('A0'):
+                    normalization_parameter_lines.append(line)
         normalization_parameters = {}
         for normalization_parameter_line in normalization_parameter_lines:
             a0_pattern = r'\s*A0(\w+)\s*=\s*([+-]?\d+\.?\d*)\s*\+/-\s*(\d+\.?\d*)'

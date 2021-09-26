@@ -123,8 +123,8 @@ class LightCurve:
         light_curve_residual_data_frame = run_residual_data_frame[run_residual_data_frame['sfx'] == instrument_suffix]
         if light_curve_residual_data_frame.shape[0] == 0:
             raise NoResidualFoundError(f'No residual found for light curve {instrument_suffix} from {run_path}.')
-        assert np.allclose(light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
-                           light_curve_residual_data_frame['date'])
+        assert np.allclose(light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value].values,
+                           light_curve_residual_data_frame['date'].values)
         light_curve.data_frame[FitModelColumnName.CHI_SQUARED.value] = light_curve_residual_data_frame['chi2'].values
         light_curve.data_frame[FitModelColumnName.MAGNIFICATION.value] = \
             light_curve_residual_data_frame['mgf_data'].values

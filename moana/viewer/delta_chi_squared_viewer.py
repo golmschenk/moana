@@ -28,5 +28,9 @@ class ChiSquaredViewer:
             figure.line(x=light_curve0.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
                         y=cumulative_delta_chi_squared, line_color=instrument_color, line_width=2,
                         legend_label=instrument_suffix)
+            figure.circle(x=light_curve0.data_frame[ColumnName.TIME__MICROLENSING_HJD.value],
+                          y=cumulative_delta_chi_squared, color=instrument_color, legend_label=instrument_suffix,
+                          fill_alpha=0.5)
         figure.legend.location = 'top_left'
+        figure.legend.click_policy = 'hide'
         return figure
