@@ -17,3 +17,6 @@ class RunModifier:
 
     def filter_instrument_suffixes_to_keep(self, run: Run, suffixes: List[str]):
         run.dbc_output.resid = run.dbc_output.resid[run.dbc_output.resid['sfx'].isin(suffixes)]
+
+    def filter_instrument_suffixes_to_keep(self, run: Run, suffixes: List[str]):
+        run.dbc_output.resid = run.dbc_output.resid[run.dbc_output.resid['sfx'].isin(suffixes)]

@@ -85,6 +85,24 @@ class RunFitViewer:
         combination_grid_plot.sizing_mode = 'stretch_width'
         return light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot
 
+    def create_light_curve_with_residuals_view(self, run: Run) -> Box:
+        light_curve_figure = Figure()
+        residual_figure = Figure()
+        combination_grid_plot = gridplot([[light_curve_figure], [residual_figure]])
+        light_curve_figure.sizing_mode = 'stretch_width'
+        light_curve_figure.height = 500
+        residual_figure.sizing_mode = 'stretch_width'
+        residual_figure.height = 170
+        combination_grid_plot.sizing_mode = 'stretch_width'
+        self.add_instrument_data_points_of_run_to_light_curve_and_residual_figures(run, light_curve_figure,
+                                                                                   residual_figure)
+        self.add_all_instruments_data_points_of_run_to_figure(run, residual_figure,
+                                                              y_column_name='magnification_residual')
+        self.add_fit_of_run_to_light_curve_and_residual_figures(run, light_curve_figure, residual_figure)
+        light_curve_figure.legend.click_policy = "hide"
+        residual_figure.legend.visible = False
+        return combination_grid_plot
+
     def create_comparison_view(self, run0: Run, run1: Run) -> Box:
         comparison_view_components = self.create_comparison_view_components()
         light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot = comparison_view_components

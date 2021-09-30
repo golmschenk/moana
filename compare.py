@@ -17,8 +17,8 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 
 np.seterr(all='raise')
 
-run0 = Run(Path('data/mb20208/runs/incorrect_color/binary_source_single_lens_moa_only'))
-run1 = Run(Path('data/mb20208/runs/incorrect_color/single_source_binary_lens_wide_moa_only_calc'))
+run0 = Run(Path('data/mb20208/runs/single_source_binary_lens_moa_and_kmti_close'))
+run1 = Run(Path('data/mb20208/runs/single_source_binary_lens_moa_and_kmti_wide'))
 # Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 run0.dbc_output.load()
 run1.dbc_output.load()
@@ -33,9 +33,9 @@ run_modifier.limit_date_range(run1.dbc_output, 9075, 9125)
 
 viewer = RunFitViewer()
 parameter_comparison_table = viewer.create_run_parameter_comparison_table(
-    run0, run1, run0_lens_parameter_enum=BinarySourceLensModelParameterName)
-left_comparison_view = viewer.create_comparison_view(run0, run1)
-right_comparison_view = viewer.create_comparison_view(run1, run0)
+    run0, run1)
+left_comparison_view = viewer.create_light_curve_with_residuals_view(run0)
+right_comparison_view = viewer.create_light_curve_with_residuals_view(run1)
 
 side_by_side_clone_comparison_view = Row(left_comparison_view, right_comparison_view)
 side_by_side_clone_comparison_view.sizing_mode = 'stretch_width'
@@ -51,7 +51,7 @@ side_by_side_clone_comparison_view.sizing_mode = 'stretch_width'
 
 
 bottom_parameter_comparison_table = viewer.create_run_parameter_comparison_table(
-    run0, run1, run0_lens_parameter_enum=BinarySourceLensModelParameterName)
+    run0, run1)
 cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models(run0, run1)
 cumulative_delta_chi_squared_figure.sizing_mode = 'stretch_width'
 
