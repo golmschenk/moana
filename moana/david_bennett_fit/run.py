@@ -181,3 +181,5 @@ class Run:
                     new_file.write(line)
         shutil.copy(replacement_path, self.mcmc_output_file_path)
         replacement_path.unlink()
+
+    def
