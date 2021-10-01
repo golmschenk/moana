@@ -17,7 +17,7 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 
 np.seterr(all='raise')
 
-run0 = Run(Path('data/mb20208/runs/single_source_binary_lens_moa_and_kmti_close'))
+run0 = Run(Path('data/mb20208/runs/binary_source_best_fit'))
 run1 = Run(Path('data/mb20208/runs/single_source_binary_lens_moa_and_kmti_wide'))
 # Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 run0.dbc_output.load()

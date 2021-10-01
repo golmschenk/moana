@@ -11,9 +11,10 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
-from moana.david_bennett_fit.names import LensModelParameterNameBase, LensModelParameterName
+from moana.david_bennett_fit.names import LensModelParameterNameBase, LensModelParameterName, \
+    BinarySourceLensModelParameterName
 from moana.david_bennett_fit.run import Run
-from moana.light_curve import LightCurve, ColumnName
+from moana.light_curve import LightCurve, ColumnName, FitModelColumnName
 from moana.dbc import Output
 from moana.viewer.color_mapper import ColorMapper
 from moana.viewer.light_curve_viewer import LightCurveViewer
@@ -57,13 +58,21 @@ class RunFitViewer:
         color_mapper = ColorMapper()
         fit_color = color_mapper.get_fit_color(str(run.path))
         fit_times = run.dbc_output.fitlc['date']
-        fit_magnifications = run.dbc_output.fitlc['mgf']
-        fit_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: fit_times,
-                                       'magnification': fit_magnifications})
-        fit_data_source = ColumnDataSource(fit_data_frame)
-        light_curve_figure.line(source=fit_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value, y='magnification',
-                                legend_label=run.display_name, line_color=fit_color, line_width=2)
-
+        if run.lens_model_parameter_name_enum == BinarySourceLensModelParameterName:
+            fit_model_light_curve_dictionary = LightCurve.dictionary_from_david_bennett_fit_file(
+                run.path.joinpath('fit.lc_run_1'))
+            for instrument_suffix, fit_model_light_curve in fit_model_light_curve_dictionary.items():
+                instrument_color = color_mapper.get_instrument_color(instrument_suffix)
+                light_curve_figure.line(source=fit_model_light_curve.data_frame, x=ColumnName.TIME__MICROLENSING_HJD,
+                                        y=FitModelColumnName.MAGNIFICATION, line_color=instrument_color, line_width=1,
+                                        legend_label=f'{instrument_suffix} band fit')
+        else:
+            fit_magnifications = run.dbc_output.fitlc['mgf']
+            fit_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: fit_times,
+                                           'magnification': fit_magnifications})
+            fit_data_source = ColumnDataSource(fit_data_frame)
+            light_curve_figure.line(source=fit_data_source, x=ColumnName.TIME__MICROLENSING_HJD.value,
+                                    legend_label='Fit', y='magnification', line_color=fit_color, line_width=2)
         residual_baseline_times = [fit_times.min(), fit_times.max()]
         residual_baseline_values = [0, 0]
         residual_guide_data_frame = pd.DataFrame({ColumnName.TIME__MICROLENSING_HJD.value: residual_baseline_times,
@@ -120,14 +129,11 @@ class RunFitViewer:
         return combination_grid_plot
 
     def create_run_parameter_comparison_table(
-            self, run0: Run, run1: Run,
-            run0_lens_parameter_enum: Type[LensModelParameterNameBase] = LensModelParameterName,
-            run1_lens_parameter_enum: Type[LensModelParameterNameBase] = LensModelParameterName
-    ) -> DataTable:
+            self, run0: Run, run1: Run,) -> DataTable:
         run0_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(
-            run0.output_input_file_path, lens_parameter_name_enum=run0_lens_parameter_enum)
+            run0.output_input_file_path, lens_parameter_name_enum=run0.lens_model_parameter_name_enum)
         run1_parameters = LensModelParameter.dictionary_from_david_bennett_input_file(
-            run1.output_input_file_path, lens_parameter_name_enum=run1_lens_parameter_enum)
+            run1.output_input_file_path, lens_parameter_name_enum=run1.lens_model_parameter_name_enum)
         comparison_dictionary = {'run': [run0.display_name, run1.display_name, 'difference'],
                                  'chisq': [run0.dbc_output.param['chisq'], run1.dbc_output.param['chisq'],
                                            run0.dbc_output.param['chisq'] - run1.dbc_output.param['chisq']]}
