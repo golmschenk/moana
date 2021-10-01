@@ -8,11 +8,13 @@ import shutil
 
 import pandas as pd
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Type, Dict
 
 from file_read_backwards import FileReadBackwards
 
-from moana.david_bennett_fit.names import LensModelParameterName
+from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
+from moana.david_bennett_fit.names import LensModelParameterName, BinarySourceLensModelParameterName, \
+    LensModelParameterNameBase
 from moana.dbc import Output
 from moana.light_curve import FitModelColumnName
 
@@ -28,6 +30,13 @@ class Run:
         self.output_input_file_name: str = output_input_file_name
         self._display_name: Optional[str] = display_name
         self._dbc_output: Optional[Output] = None
+        self._lens_model_parameter_name_enum: Optional[Type[LensModelParameterNameBase]] = None
+
+    @property
+    def lens_model_parameter_name_enum(self) -> Type[LensModelParameterNameBase]:
+        if self._lens_model_parameter_name_enum is None:
+            self._lens_model_parameter_name_enum = self.infer_lens_model_parameter_name_enum_from_input_file()
+        return self._lens_model_parameter_name_enum
 
     @property
     def display_name(self) -> str:
@@ -103,6 +112,13 @@ class Run:
     def mcmc_output_file_path(self) -> Path:
         return self.path.joinpath('mcmc_run_1.dat')
 
+    def infer_lens_model_parameter_name_enum_from_input_file(self) -> Type[LensModelParameterNameBase]:
+        try:
+            LensModelParameter.dictionary_from_david_bennett_input_file(self.input_file_path)
+            return LensModelParameterName
+        except AssertionError:
+            return BinarySourceLensModelParameterName
+
     def get_mcmc_output_file_state_count(self) -> int:
         state_repeat_column_index = -1
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
@@ -136,7 +152,7 @@ class Run:
     def load_mcmc_output_states(self) -> pd.DataFrame:
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
                                             header=None, index_col=None)
-        lens_model_parameter_names = [name.value for name in LensModelParameterName]
+        lens_model_parameter_names = [name for name in self.lens_model_parameter_name_enum]
         pre_flux_column_names = [FitModelColumnName.CHI_SQUARED.value, *lens_model_parameter_names]
         column_count = len(mcmc_output_dataframe.columns)
         flux_values_column_count = column_count - len(pre_flux_column_names) - 1  # Last column is MCMC state repeat.
@@ -182,4 +198,21 @@ class Run:
         shutil.copy(replacement_path, self.mcmc_output_file_path)
         replacement_path.unlink()
 
-    def
+    def lens_model_parameter_dictionary_from_lowest_chi_squared_from_mcmc_run_output(
+            self) -> Dict[str, LensModelParameter]:
+        minimum_chi_squared_lens_parameter_row = self.load_minimum_chi_squared_mcmc_output_state()
+        lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
+            self.input_file_path)
+        for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
+            lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name]
+        return lens_model_parameter_dictionary
+
+    def lens_model_parameter_dictionary_from_most_recent_mcmc_run_state(
+            self, start: int) -> Dict[str, LensModelParameter]:
+        states_data_frame = self.load_mcmc_output_states()
+        last_state_row = states_data_frame.iloc[start]
+        lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
+            self.input_file_path)
+        for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
+            lens_model_parameter.value = last_state_row[lens_model_parameter_name]
+        return lens_model_parameter_dictionary
