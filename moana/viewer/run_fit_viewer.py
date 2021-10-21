@@ -95,8 +95,8 @@ class RunFitViewer:
         return light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot
 
     def create_light_curve_with_residuals_view(self, run: Run) -> Box:
-        light_curve_figure = Figure()
-        residual_figure = Figure()
+        light_curve_figure = Figure(title=run.display_name)
+        residual_figure = Figure(x_range=light_curve_figure.x_range)
         combination_grid_plot = gridplot([[light_curve_figure], [residual_figure]])
         light_curve_figure.sizing_mode = 'stretch_width'
         light_curve_figure.height = 500

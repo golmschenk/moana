@@ -47,7 +47,7 @@ class LightCurveFileLiaison:
         """
         Loads a light curve from KMT's TLC format.
 
-        :param kmt_tlc_input_path: The path to Ian Bond's file.
+        :param kmt_tlc_input_path: The path to KMT file.
         :return: The light curve data frame.
         """
         kmt_tlc_data_frame = pd.read_csv(kmt_tlc_input_path, escapechar='#', delim_whitespace=True,
