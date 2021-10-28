@@ -4,7 +4,7 @@ import numpy as np
 from bokeh.io import show
 from bokeh.models import Row, Column
 
-from moana.david_bennett_fit.names import BinarySourceLensModelParameterName
+from moana.david_bennett_fit.names import BinarySourceModelParameterNameEnum
 from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve
 from moana.viewer.caustic_crossing_viewer import CausticCrossingViewer
@@ -17,7 +17,7 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 
 np.seterr(all='raise')
 
-run0 = Run(Path('data/mb20208/runs/binary_source_best_fit'))
+run0 = Run(Path('data/mb20208/runs/binary_source_single_lens_moa_and_kmti'))
 run1 = Run(Path('data/mb20208/runs/single_source_binary_lens_moa_and_kmti_wide'))
 # Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 run0.dbc_output.load()

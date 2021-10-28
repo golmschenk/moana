@@ -11,8 +11,8 @@ from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
-from moana.david_bennett_fit.names import LensModelParameterNameBase, LensModelParameterName, \
-    BinarySourceLensModelParameterName
+from moana.david_bennett_fit.names import LensModelParameterNameEnum, BinaryLensModelParameterNameEnum, \
+    BinarySourceModelParameterNameEnum
 from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve, ColumnName, FitModelColumnName
 from moana.dbc import Output
@@ -58,7 +58,7 @@ class RunFitViewer:
         color_mapper = ColorMapper()
         fit_color = color_mapper.get_fit_color(str(run.path))
         fit_times = run.dbc_output.fitlc['date']
-        if run.lens_model_parameter_name_enum == BinarySourceLensModelParameterName:
+        if run.lens_model_parameter_name_enum == BinarySourceModelParameterNameEnum:
             fit_model_light_curve_dictionary = LightCurve.dictionary_from_david_bennett_fit_file(
                 run.path.joinpath('fit.lc_run_1'))
             for instrument_suffix, fit_model_light_curve in fit_model_light_curve_dictionary.items():

@@ -13,8 +13,8 @@ from typing import Optional, List, Type, Dict
 from file_read_backwards import FileReadBackwards
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
-from moana.david_bennett_fit.names import LensModelParameterName, BinarySourceLensModelParameterName, \
-    LensModelParameterNameBase
+from moana.david_bennett_fit.names import BinaryLensModelParameterNameEnum, BinarySourceModelParameterNameEnum, \
+    LensModelParameterNameEnum
 from moana.dbc import Output
 from moana.light_curve import FitModelColumnName
 
@@ -30,10 +30,10 @@ class Run:
         self.output_input_file_name: str = output_input_file_name
         self._display_name: Optional[str] = display_name
         self._dbc_output: Optional[Output] = None
-        self._lens_model_parameter_name_enum: Optional[Type[LensModelParameterNameBase]] = None
+        self._lens_model_parameter_name_enum: Optional[Type[LensModelParameterNameEnum]] = None
 
     @property
-    def lens_model_parameter_name_enum(self) -> Type[LensModelParameterNameBase]:
+    def lens_model_parameter_name_enum(self) -> Type[LensModelParameterNameEnum]:
         if self._lens_model_parameter_name_enum is None:
             self._lens_model_parameter_name_enum = self.infer_lens_model_parameter_name_enum_from_input_file()
         return self._lens_model_parameter_name_enum
@@ -112,12 +112,12 @@ class Run:
     def mcmc_output_file_path(self) -> Path:
         return self.path.joinpath('mcmc_run_1.dat')
 
-    def infer_lens_model_parameter_name_enum_from_input_file(self) -> Type[LensModelParameterNameBase]:
+    def infer_lens_model_parameter_name_enum_from_input_file(self) -> Type[LensModelParameterNameEnum]:
         try:
             LensModelParameter.dictionary_from_david_bennett_input_file(self.input_file_path)
-            return LensModelParameterName
+            return BinaryLensModelParameterNameEnum
         except AssertionError:
-            return BinarySourceLensModelParameterName
+            return BinarySourceModelParameterNameEnum
 
     def get_mcmc_output_file_state_count(self) -> int:
         state_repeat_column_index = -1
@@ -152,7 +152,7 @@ class Run:
     def load_mcmc_output_states(self) -> pd.DataFrame:
         mcmc_output_dataframe = pd.read_csv(self.mcmc_output_file_path, delim_whitespace=True, skipinitialspace=True,
                                             header=None, index_col=None)
-        lens_model_parameter_names = [name for name in self.lens_model_parameter_name_enum]
+        lens_model_parameter_names = [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
         pre_flux_column_names = [FitModelColumnName.CHI_SQUARED.value, *lens_model_parameter_names]
         column_count = len(mcmc_output_dataframe.columns)
         flux_values_column_count = column_count - len(pre_flux_column_names) - 1  # Last column is MCMC state repeat.
