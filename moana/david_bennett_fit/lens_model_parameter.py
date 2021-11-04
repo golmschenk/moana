@@ -12,7 +12,7 @@ from tabulate import tabulate
 from file_read_backwards import FileReadBackwards
 
 # noinspection SpellCheckingInspection
-from moana.david_bennett_fit.names import BinaryLensModelParameterNameEnum, LensModelParameterNameEnum
+from moana.david_bennett_fit.names import BinaryLensModelParameterNameEnum, LensModelParameterNameEnum, NameElement
 
 
 class LensModelParameter:
@@ -29,7 +29,7 @@ class LensModelParameter:
     def dictionary_from_david_bennett_input_file(
             cls, input_file_path: Path,
             lens_parameter_name_enum: Type[LensModelParameterNameEnum] = BinaryLensModelParameterNameEnum
-    ) -> Dict[str, LensModelParameter]:
+    ) -> Dict[NameElement, LensModelParameter]:
         """
         Loads the lens model parameters from a David Bennett input file.
 

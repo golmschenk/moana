@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 import shutil
+from io import StringIO
 
 import pandas as pd
 from pathlib import Path
@@ -14,7 +15,7 @@ from file_read_backwards import FileReadBackwards
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
 from moana.david_bennett_fit.names import BinaryLensModelParameterNameEnum, BinarySourceModelParameterNameEnum, \
-    LensModelParameterNameEnum
+    LensModelParameterNameEnum, NameEnum, NameElement
 from moana.dbc import Output
 from moana.light_curve import FitModelColumnName
 
@@ -116,7 +117,7 @@ class Run:
         try:
             LensModelParameter.dictionary_from_david_bennett_input_file(self.input_file_path)
             return BinaryLensModelParameterNameEnum
-        except AssertionError:
+        except (AssertionError, KeyError):
             return BinarySourceModelParameterNameEnum
 
     def get_mcmc_output_file_state_count(self) -> int:
@@ -216,3 +217,57 @@ class Run:
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
             lens_model_parameter.value = last_state_row[lens_model_parameter_name]
         return lens_model_parameter_dictionary
+
+    def extract_final_parameters_from_run_output_file(self) -> Dict[NameElement, LensModelParameter]:
+        final_parameter_lines = []
+        with FileReadBackwards(self.main_output_file_path) as file_read_backwards:
+            assert 'MINUIT TERMINATED BY MINUIT COMMAND: EXIT' in file_read_backwards.readline()
+            while True:
+                line = file_read_backwards.readline()
+                if '=' in line:  # We've reached the normalization parameter rows.
+                    break
+                if 'Caustic crossings found at' in line:  # We've reached the caustic crossing lines.
+                    final_parameter_lines.pop(0)
+                    break
+                final_parameter_lines.insert(0, line)
+        header_line = ''
+        value_line = ''
+        for line_index, line in enumerate(final_parameter_lines):
+            line_with_no_newline = line.replace('\n', ' ')  # We want to put everything on just two lines.
+            if line_index % 2 == 0:  # Every other line is a header line.
+                if re.search(r'[A-Za-z]', line) is None:
+                    break  # If we hit what should be a header line with no alpha, we've reached the light curve table.
+                header_line += line_with_no_newline
+            else:  # Every other other line is a value line.
+                value_line += line_with_no_newline
+        normalization_parameters_string = header_line + '\n' + value_line
+        parameter_table_string_io = StringIO(normalization_parameters_string)
+        parameter_data_frame = pd.read_csv(parameter_table_string_io, delim_whitespace=True, skipinitialspace=True)
+        run_output_parameter_series = parameter_data_frame.iloc[0]  # There's only a single row. Convert to series.
+        run_input_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
+            self.input_file_path, lens_parameter_name_enum=self.lens_model_parameter_name_enum)
+        # Correct inconsistent inputs and outputs.
+        if 'f2MRpowI.1' in run_output_parameter_series.index:
+            run_output_parameter_series.rename(index={'f2MRpowI.1': 'f2KpowI'}, inplace=True)  # Typo by Dave.
+        if 'T_Sbininv' in [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]:
+            run_output_parameter_series.rename(index={'1/T_Sbin': 'T_Sbininv'}, inplace=True)
+        if ('1/t_E' in [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
+                and 't_E' in run_output_parameter_series.index):
+            run_output_parameter_series['1/t_E'] = 1 / run_output_parameter_series['t_E']
+        if ('piEr' in [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
+                and 'piEx' in run_output_parameter_series.index):
+            run_output_parameter_series.rename(index={'piEx': 'piEr'}, inplace=True)
+        if ('pieth' in [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
+                and 'piEy' in run_output_parameter_series.index):
+            run_output_parameter_series.rename(index={'piEy': 'pieth'}, inplace=True)
+        column_names_to_keep = [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
+        column_names_to_keep.insert(0, NameEnum.CHI_SQUARED_STATISTIC.david_bennett_name)
+        run_output_parameter_series = run_output_parameter_series.filter(items=column_names_to_keep)
+        assert len(run_input_parameter_dictionary) + 1 == run_output_parameter_series.shape[0]  # +1 for the chi^2.
+        for key, value in run_output_parameter_series.iteritems():
+            parameter_name = NameEnum.element_from_david_bennett_name(key)
+            try:
+                run_input_parameter_dictionary[parameter_name].value = value
+            except KeyError:
+                run_input_parameter_dictionary[parameter_name] = LensModelParameter(value)
+        return run_input_parameter_dictionary
