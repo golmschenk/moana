@@ -6,7 +6,7 @@ from typing import Type
 import numpy as np
 import pandas as pd
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Box, DataTable, TableColumn, ScientificFormatter
+from bokeh.models import ColumnDataSource, Box, DataTable, TableColumn, ScientificFormatter, LayoutDOM
 from pandas.api.types import is_numeric_dtype
 from bokeh.plotting import Figure
 
@@ -94,7 +94,7 @@ class RunFitViewer:
         combination_grid_plot.sizing_mode = 'stretch_width'
         return light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot
 
-    def create_light_curve_with_residuals_view(self, run: Run) -> Box:
+    def create_light_curve_with_residuals_view(self, run: Run) -> LayoutDOM:
         light_curve_figure = Figure(title=run.display_name)
         residual_figure = Figure(x_range=light_curve_figure.x_range)
         combination_grid_plot = gridplot([[light_curve_figure], [residual_figure]])
@@ -112,7 +112,7 @@ class RunFitViewer:
         residual_figure.legend.visible = False
         return combination_grid_plot
 
-    def create_comparison_view(self, run0: Run, run1: Run) -> Box:
+    def create_comparison_view(self, run0: Run, run1: Run) -> LayoutDOM:
         comparison_view_components = self.create_comparison_view_components()
         light_curve_figure, residual_figure0, residual_figure1, combination_grid_plot = comparison_view_components
         scale, shift = self.calculate_mean_relative_instrument_scale_and_shift(run0, run1)
