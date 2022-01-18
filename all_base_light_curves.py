@@ -30,7 +30,7 @@ def create_all_mb20208_light_curves() -> List[LightCurveWithInstrumentParameters
     kmtI_light_curve_data_frame = external_liaison.load_kmt_tlc_light_curve(
         Path('data/mb20208/external_data/KMTA22_I.pysis.dflux'))
     kmtI_light_curve_data_frame = kmtI_light_curve_data_frame[
-        kmtI_light_curve_data_frame[ColumnName.FULL_WIDTH_HALF_MAX.value] != 1]
+        kmtI_light_curve_data_frame[ColumnName.FULL_WIDTH_HALF_MAX.value] != -1]
     kmtI_light_curve_data_frame = kmtI_light_curve_data_frame[
         kmtI_light_curve_data_frame[ColumnName.FULL_WIDTH_HALF_MAX.value] < 7]
     kmtI_suffix = 'kmtI'
