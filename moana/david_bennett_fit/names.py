@@ -33,8 +33,15 @@ class NameElement(str):
 class NameEnumBase:
     @classmethod
     def as_list(cls) -> List[NameElement]:
-        member_list = inspect.getmembers(cls)
-        element_list = [member[1] for member in member_list if isinstance(member[1], NameElement)]
+        parent_class = cls
+        element_list = []
+        while parent_class is not NameEnumBase:
+            parent_class_element_list = [element for element in parent_class.__dict__.values()
+                                         if isinstance(element, NameElement)]
+            element_list = parent_class_element_list + element_list
+            parent_bases = parent_class.__bases__
+            assert len(parent_bases) == 1  # Only works for single parent enums at the moment.
+            parent_class = parent_bases[0]
         return element_list
 
     @classmethod
