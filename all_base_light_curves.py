@@ -7,11 +7,12 @@ from moana.external_format_io.light_curve_file_liaison import LightCurveFileLiai
 from moana.light_curve import ColumnName
 
 
-def create_all_mb20208_light_curves() -> List[LightCurveWithInstrumentParameters]:
+def create_all_mb20208_light_curves(instrument_parameter_path: Path = Path('data/mb20208/template/parMB20208')
+                                    ) -> List[LightCurveWithInstrumentParameters]:
     external_liaison = LightCurveFileLiaison()
     light_curves: List[LightCurveWithInstrumentParameters] = []
     instrument_parameters_dictionary = InstrumentParameters.dictionary_from_david_bennett_parameter_file(
-        Path('data/mb20208/template/parMB20208'))
+        instrument_parameter_path)
 
     moa2r_light_curve_data_frame = external_liaison.load_ian_bond_light_curve(
         Path('data/mb20208/external_data/mb20208-MOA2R-10000.phot.dat'))

@@ -257,11 +257,14 @@ class LightCurve:
         return light_curves
 
     @classmethod
-    def list_for_run_directory(cls, directory_path: Path) -> List[LightCurve]:
+    def list_for_run_directory(cls, directory_path: Path, with_residuals: bool = False) -> List[LightCurve]:
         light_curve_paths = directory_path.glob('lc*')
         light_curves = []
         for light_curve_path in light_curve_paths:
-            light_curve = cls.from_path(light_curve_path)
+            if with_residuals:
+                light_curve = cls.from_path_with_residuals_from_run(light_curve_path)
+            else:
+                light_curve = cls.from_path(light_curve_path)
             light_curves.append(light_curve)
         return light_curves
 

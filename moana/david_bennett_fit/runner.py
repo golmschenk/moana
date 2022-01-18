@@ -35,7 +35,7 @@ class DavidBennettFitRunner:
         self.instructions: Optional[str] = None
         self.lens_parameter_name_enum: Type[LensModelParameterNameEnum] = lens_parameter_name_enum
         self.david_bennett_fitting_executable_path: Path = Path(
-            'david_bennett_fitting/precompiled_by_dave_for_macos_2021_02_02/minuit_all_rvg4Ctpar.xO')
+            'david_bennett_fitting/fit_rvg4_CRtpar/minuit_all_rvg4Ctpar.xO')
 
     def generate_run_files(self):
         """
