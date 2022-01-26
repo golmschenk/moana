@@ -70,7 +70,7 @@ def create_all_mb20208_light_curves(instrument_parameter_path: Path = Path('data
             light_curve.data_frame[light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] < 9000].index,
             inplace=True)
         light_curve.data_frame.drop(
-            light_curve.data_frame[light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] > 9200].index,
+            light_curve.data_frame[light_curve.data_frame[ColumnName.TIME__MICROLENSING_HJD.value] > 9250].index,
             inplace=True)
 
     return light_curves
