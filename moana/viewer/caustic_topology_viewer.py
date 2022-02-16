@@ -32,7 +32,7 @@ class CausticTopologyViewer:
     @staticmethod
     def create_caustic_topology_figure():
         figure = Figure(x_axis_label='Separation', y_axis_label='Mass ratio', y_axis_type='log')
-        mass_ratios = np.logspace(-5, 0, 100)
+        mass_ratios = np.logspace(-5, -0.01, 100)
         wide_to_resonant_caustic_limit_separations = moana.lens.wide_limit_2l(mass_ratios)
         close_to_resonant_caustic_limit_separations = moana.lens.close_limit_2l(mass_ratios)
         limit_line_color = 'black'
