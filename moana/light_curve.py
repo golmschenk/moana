@@ -77,6 +77,7 @@ class LightCurve:
                          ColumnName.PHOTOMETRIC_MEASUREMENT_ERROR.value],
             delim_whitespace=True, skipinitialspace=True, index_col=False
         )
+        light_curve_data_frame = light_curve_data_frame.sort_values(ColumnName.TIME__MICROLENSING_HJD).reset_index(drop=True)
         light_curve = cls(instrument_suffix, light_curve_data_frame)
         light_curve.data_frame = light_curve_data_frame
         return light_curve

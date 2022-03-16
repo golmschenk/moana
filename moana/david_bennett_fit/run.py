@@ -200,12 +200,12 @@ class Run:
         replacement_path.unlink()
 
     def lens_model_parameter_dictionary_from_lowest_chi_squared_from_mcmc_run_output(
-            self) -> Dict[str, LensModelParameter]:
+            self) -> Dict[NameElement, LensModelParameter]:
         minimum_chi_squared_lens_parameter_row = self.load_minimum_chi_squared_mcmc_output_state()
         lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
             self.input_file_path)
         for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
-            lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name]
+            lens_model_parameter.value = minimum_chi_squared_lens_parameter_row[lens_model_parameter_name.david_bennett_name]
         return lens_model_parameter_dictionary
 
     def lens_model_parameter_dictionary_from_most_recent_mcmc_run_state(

@@ -233,7 +233,8 @@ class SampledPosterior:
         display_1sigma = False,
         rcfile = None,
         rcparams = dict(),
-        bins_density = dict()
+        bins_density = dict(),
+        dchi2_list = np.array([16, 9, 4, 1, 0])
         ):
 
         N = len(self.request)
@@ -271,9 +272,8 @@ class SampledPosterior:
         ax_options.update(axes_options)
 
         spectral_map = plt.get_cmap('Spectral')
-        alpha = [0.5, 0.9, 0.9, 0.9, 0.9]
-        s_list = [1, 5, 5, 5, 5]
-        dchi2_list = np.array([16, 9, 4, 1, 0])
+        alpha = [0.3, 0.4, 0.5, 0.6, 0.8]
+        s_list = [2, 3, 4, 5, 5]
         colors = [spectral_map(255.0/255.0), spectral_map(170.0/255.0), 
             spectral_map(85.0/255.0), spectral_map(0.0)]
         colors = get_cmap('viridis', 4).colors
