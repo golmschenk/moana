@@ -2,6 +2,7 @@
 Code for plotting a caustic crossing path
 """
 import pickle
+import sys
 from pathlib import Path
 from typing import Union
 
@@ -16,7 +17,11 @@ from bokeh.plotting import Figure
 from bokeh.models import DataRange1d, Arrow, NormalHead
 
 import moana
-from main_resources.theme import paper_themed_figure_and_axes
+try:
+    from main_resources.theme import paper_themed_figure_and_axes
+except ModuleNotFoundError:  # TODO: Terrible hack. This should be redone.
+    sys.path.insert(0, '/Users/golmschenk/Documents/2021_microlensing_event_moa_2020_blg_208_paper')
+    from main_resources.theme import paper_themed_figure_and_axes
 from moana.david_bennett_fit.names import NameEnum
 from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
@@ -144,7 +149,7 @@ def create_magnification_pattern_and_trajectory_figure(run):
     single_lens_parameters = [(0, 0, 1.0)]
     full_plotting_region = (x_start, y_start, x_end, y_end)
     ray_shooting_number_of_threads = 16
-    recalc = False
+    recalc = True
     if recalc:
         single_lens_magnification_pattern = rayshoot(single_lens_parameters, full_plotting_region, number_of_x_pixels,
                                                      number_of_y_pixels, num_threads=ray_shooting_number_of_threads,
@@ -247,5 +252,5 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(Path('data/mb20208/runs/wide_half_detailed_all_instruments_mcmc1_o3_continue1calc_2021-06-03-17-08-52'))
+    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_08_dl_2022_03_16'))
     create_magnification_pattern_and_trajectory_figure(run_)
