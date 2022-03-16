@@ -227,7 +227,11 @@ class Run:
                 if '=' in line:  # We've reached the normalization parameter rows.
                     break
                 if 'Caustic crossings found at' in line:  # We've reached the caustic crossing lines.
-                    final_parameter_lines.pop(0)
+                    while True:
+                        pop_line = final_parameter_lines.pop(0)
+                        if re.search(r'[A-Za-z]', pop_line) is not None:
+                            final_parameter_lines.insert(0, pop_line)
+                            break
                     break
                 final_parameter_lines.insert(0, line)
         header_line = ''
@@ -260,6 +264,8 @@ class Run:
         if ('pieth' in [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
                 and 'piEy' in run_output_parameter_series.index):
             run_output_parameter_series.rename(index={'piEy': 'pieth'}, inplace=True)
+        if ('piEtheta' in run_output_parameter_series.index):
+            run_output_parameter_series.rename(index={'piEtheta': 'pieth'}, inplace=True)
         column_names_to_keep = [name.david_bennett_name for name in self.lens_model_parameter_name_enum.as_list()]
         column_names_to_keep.insert(0, NameEnum.CHI_SQUARED_STATISTIC.david_bennett_name)
         run_output_parameter_series = run_output_parameter_series.filter(items=column_names_to_keep)
