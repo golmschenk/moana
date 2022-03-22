@@ -212,9 +212,10 @@ def create_magnification_pattern_and_trajectory_figure(run):
                                 extent=[full_plotting_region[0], full_plotting_region[2], full_plotting_region[1],
                                         full_plotting_region[3]])
             color_bar = figure.colorbar(image, location='top', shrink=0.6)
-            color_bar.ax.set_xticklabels(color_bar.ax.get_xticklabels(), rotation=45)
             color_bar.set_label('Magnification residual $A_{PSBL}-A_{PSPL}$')
-            # color_bar.set_ticks([-1e2, -1e-1, 0, 1e-1, 1e2])
+            color_bar.set_ticks([-1e2, -1e-1, 0, 1e-1, 1e2])
+            # color_bar.ax.set_xticklabels(color_bar.ax.get_xticklabels(), rotation=45)
+            color_bar.ax.tick_params(rotation=45)
             axes.scatter(x=real_component, y=imaginary_component, c='white', s=0.2, linewidths=0)
             axes.plot(trajectory_x, trajectory_y, color='black', linewidth=1)
             points_array = np.stack([trajectory_y, trajectory_x], axis=1)
@@ -252,5 +253,5 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_08_dl_2022_03_16'))
+    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_17_dl_2022_03_22'))
     create_magnification_pattern_and_trajectory_figure(run_)
