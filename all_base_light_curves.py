@@ -74,3 +74,7 @@ def create_all_mb20208_light_curves(instrument_parameter_path: Path = Path('data
             inplace=True)
 
     return light_curves
+
+
+if __name__ == '__main__':
+    create_all_mb20208_light_curves()
