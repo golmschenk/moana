@@ -143,7 +143,9 @@ class LensModelParameter:
                 line = file_read_backwards.readline()
                 if line.strip().startswith('accepted due to chi2 improvement'):
                     _ = file_read_backwards.readline()  # Discard chi squared value line.
-                    lens_parameter_line = file_read_backwards.readline()
+                    lens_parameter_line = ''
+                    while 'FCN call with a =' not in lens_parameter_line:
+                        lens_parameter_line = file_read_backwards.readline().strip() + ' ' + lens_parameter_line
                     break
         lens_parameter_line = lens_parameter_line.replace('FCN call with a =', '').strip()
         lens_parameter_string_io = StringIO(lens_parameter_line)
