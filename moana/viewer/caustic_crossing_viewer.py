@@ -17,6 +17,7 @@ from bokeh.plotting import Figure
 from bokeh.models import DataRange1d, Arrow, NormalHead
 
 import moana
+
 try:
     from main_resources.theme import paper_themed_figure_and_axes
 except ModuleNotFoundError:  # TODO: Terrible hack. This should be redone.
@@ -27,13 +28,14 @@ from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
 from bokeh import palettes
 
-
 try:
     from luckylensing.luckylensing import rayshoot
     from luckylensing.luckylensing import lensconfig
 except ImportError as import_error:
     def raise_error_on_use():
         raise import_error
+
+
     rayshoot = raise_error_on_use
     lensconfig = raise_error_on_use
 
@@ -66,17 +68,15 @@ class CausticCrossingViewer:
         fit_color = color_mapper.get_fit_color(str(run.path))
         figure.line(x=trajectory_x, y=trajectory_y, color=fit_color, line_width=2)
 
-
         # Create directional arrow.
         points_array = np.stack([trajectory_y, trajectory_x], axis=1)
         distance, closest_to_centroid_index = spatial.KDTree(points_array).query([y_mean, x_mean])
         figure.add_layout(Arrow(end=NormalHead(line_alpha=0.0, fill_color=fit_color),
-                                line_alpha = 0.0,
+                                line_alpha=0.0,
                                 x_start=trajectory_x[closest_to_centroid_index - int(len(trajectory_x) * 0.1)],
                                 y_start=trajectory_y[closest_to_centroid_index - int(len(trajectory_x) * 0.1)],
                                 x_end=trajectory_x[closest_to_centroid_index],
                                 y_end=trajectory_y[closest_to_centroid_index]))
-
 
         if x_arithmetic_range > y_arithmetic_range:
             figure.x_range.start = real_component.min() - x_padding
@@ -91,6 +91,7 @@ class CausticCrossingViewer:
 
         return figure
 
+
 def extract_caustics(run):
     params = run.dbc_output.param.to_dict()
     # Create a MOANA lens object (ignore the name 'ResonantCaustic'), it works for all caustics.
@@ -98,7 +99,7 @@ def extract_caustics(run):
     # Compute the center of mass location
     params.update({'gl1': moana.lens.Microlens(**params)._gl1})
     # Compute the caustic shape. Choose the sampling you need to have a nice continuous caustic
-    N = 400
+    N = 2000
     lens._sample(N)
     # Change reference frame to convention of Dave's code
     frame_dave = moana.LensReferenceFrame(center='barycenter', x_axis='21')
@@ -114,13 +115,14 @@ def extract_caustics(run):
     imaginary_component = np.concatenate([imaginary_component0, imaginary_component1])
     return imaginary_component, real_component
 
+
 def get_run_source_trajectory(run):
     trajectory_x = run.dbc_output.fitlc['xs']
     trajectory_y = run.dbc_output.fitlc['ys']
     return trajectory_x, trajectory_y
 
 
-def create_magnification_pattern_and_trajectory_figure(run):
+def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: bool = False):
     # Map of PSPL model
     number_of_x_pixels = 16384
     number_of_y_pixels = number_of_x_pixels
@@ -149,8 +151,7 @@ def create_magnification_pattern_and_trajectory_figure(run):
     single_lens_parameters = [(0, 0, 1.0)]
     full_plotting_region = (x_start, y_start, x_end, y_end)
     ray_shooting_number_of_threads = 16
-    recalc = True
-    if recalc:
+    if not use_cached_results:
         single_lens_magnification_pattern = rayshoot(single_lens_parameters, full_plotting_region, number_of_x_pixels,
                                                      number_of_y_pixels, num_threads=ray_shooting_number_of_threads,
                                                      kernel='triangulated')
@@ -165,7 +166,7 @@ def create_magnification_pattern_and_trajectory_figure(run):
     sep = -lens_model_parameters[NameEnum.SECONDARY_SEPARATION].value
     q = moana.dbc.mass_fration_to_mass_ratio(lens_model_parameters[NameEnum.SECONDARY_EPSILON].value)
     binary_lens = lensconfig.binary_lenses(sep, q)
-    if recalc:
+    if not use_cached_results:
         magnification_pattern_l2 = rayshoot(binary_lens, full_plotting_region, number_of_x_pixels, number_of_y_pixels,
                                             num_threads=ray_shooting_number_of_threads,
                                             kernel='triangulated')
@@ -203,36 +204,72 @@ def create_magnification_pattern_and_trajectory_figure(run):
     # figure.colorbar(image)
     # plt.show()
 
-
     for linear_threshold in [0.01]:
         with paper_themed_figure_and_axes() as (figure, axes):
-            image = axes.imshow(magnification_difference, cmap=cm.get_cmap("coolwarm", 1000), origin='lower',
-                                norm=SymLogNorm(linthresh=linear_threshold, vmin=np.min(magnification_difference),
-                                                vmax=np.max(magnification_difference)),
-                                extent=[full_plotting_region[0], full_plotting_region[2], full_plotting_region[1],
-                                        full_plotting_region[3]])
+            def add_image_to_axes(axes, full_plotting_region, linear_threshold, magnification_difference):
+                return axes.imshow(magnification_difference, cmap=cm.get_cmap("coolwarm", 1000), origin='lower',
+                                   norm=SymLogNorm(linthresh=linear_threshold, vmin=np.min(magnification_difference),
+                                                   vmax=np.max(magnification_difference)),
+                                   extent=[full_plotting_region[0], full_plotting_region[2], full_plotting_region[1],
+                                           full_plotting_region[3]])
+
+            def add_data_to_axes(axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean, y_mean):
+                axes.scatter(x=real_component, y=imaginary_component, c='white', s=0.2, linewidths=0)
+                axes.plot(trajectory_x, trajectory_y, color='black', linewidth=1)
+                points_array = np.stack([trajectory_y, trajectory_x], axis=1)
+                distance, closest_to_centroid_index = spatial.KDTree(points_array).query([y_mean, x_mean])
+                arrow_start_x = trajectory_x[closest_to_centroid_index - int(len(trajectory_x) * 0.1)]
+                arrow_start_y = trajectory_y[closest_to_centroid_index - int(len(trajectory_x) * 0.1)]
+                arrow_end_x = trajectory_x[closest_to_centroid_index]
+                arrow_end_y = trajectory_y[closest_to_centroid_index]
+                axes.arrow(arrow_start_x,
+                           arrow_start_y,
+                           arrow_end_x - arrow_start_x,
+                           arrow_end_y - arrow_start_y,
+                           shape='full', lw=0, length_includes_head=True, head_width=.015, facecolor='black')
+
+            image = add_image_to_axes(axes, full_plotting_region, linear_threshold, magnification_difference)
             color_bar = figure.colorbar(image, location='top', shrink=0.6)
             color_bar.set_label('Magnification residual $A_{PSBL}-A_{PSPL}$')
             color_bar.set_ticks([-1e2, -1e-1, 0, 1e-1, 1e2])
             # color_bar.ax.set_xticklabels(color_bar.ax.get_xticklabels(), rotation=45)
+
             color_bar.ax.tick_params(rotation=45)
-            axes.scatter(x=real_component, y=imaginary_component, c='white', s=0.2, linewidths=0)
-            axes.plot(trajectory_x, trajectory_y, color='black', linewidth=1)
-            points_array = np.stack([trajectory_y, trajectory_x], axis=1)
-            distance, closest_to_centroid_index = spatial.KDTree(points_array).query([y_mean, x_mean])
-            arrow_start_x = trajectory_x[closest_to_centroid_index - int(len(trajectory_x) * 0.1)]
-            arrow_start_y = trajectory_y[closest_to_centroid_index - int(len(trajectory_x) * 0.1)]
-            arrow_end_x = trajectory_x[closest_to_centroid_index]
-            arrow_end_y = trajectory_y[closest_to_centroid_index]
-            axes.arrow(arrow_start_x,
-                       arrow_start_y,
-                       arrow_end_x - arrow_start_x,
-                       arrow_end_y - arrow_start_y,
-                       shape='full', lw=0, length_includes_head=True, head_width=.015, facecolor='black')
+
+            add_data_to_axes(axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean, y_mean)
             axes.set_xlim(x_start, x_end)
             axes.set_ylim(y_start, y_end)
             axes.set_xlabel(r'$\theta_{x} / \theta_{E}$')
             axes.set_ylabel(r'$\theta_{y} / \theta_{E}$')
+
+            inset_size = 0.4
+            lens0_inset_axes = axes.inset_axes([1 - inset_size - 0.17, 0.02, inset_size, inset_size])
+            add_image_to_axes(lens0_inset_axes, full_plotting_region, linear_threshold,
+                              magnification_difference)
+            add_data_to_axes(lens0_inset_axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean,
+                             y_mean)
+            lens0_inset_axes.set_xlim(-0.006, 0.004)
+            lens0_inset_axes.set_ylim(-0.005, 0.005)
+            lens0_inset_axes.set_xticklabels([])
+            lens0_inset_axes.set_yticklabels([])
+            _, connections = axes.indicate_inset_zoom(lens0_inset_axes)
+            # `indicate_inset_zoom` picked the wrong sides to indicate.
+            connections[0].set_visible(False)
+            connections[1].set_visible(True)
+            connections[2].set_visible(True)
+            connections[3].set_visible(False)
+
+            lens1_inset_axes = axes.inset_axes([0.17, 1 - inset_size - 0.02, inset_size, inset_size])
+            add_image_to_axes(lens1_inset_axes, full_plotting_region, linear_threshold,
+                              magnification_difference)
+            add_data_to_axes(lens1_inset_axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean,
+                             y_mean)
+            lens1_inset_axes.set_xlim(-0.69, -0.62)
+            lens1_inset_axes.set_ylim(-0.035, 0.035)
+            lens1_inset_axes.set_xticklabels([])
+            lens1_inset_axes.set_yticklabels([])
+            axes.indicate_inset_zoom(lens1_inset_axes)
+
             # figure.tight_layout()
             # plt.subplots_adjust(left=-0.1, right=1.1, top=0.8, bottom=0.15)
             # plt.show()
@@ -245,7 +282,6 @@ def create_magnification_pattern_and_trajectory_figure(run):
     # plt.show()
 
 
-
 def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, y_point: float, x_point: float):
     distance = (y_array - y_point) ** 2 + (x_array - x_point) ** 2
     idy, idx = np.where(distance == distance.min())
@@ -253,5 +289,6 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_17_dl_2022_03_22'))
-    create_magnification_pattern_and_trajectory_figure(run_)
+    run_ = Run(Path(
+        '/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_17_dl_2022_03_22'))
+    create_magnification_pattern_and_trajectory_figure(run_, use_cached_results=True)
