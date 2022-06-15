@@ -3,6 +3,7 @@ Code to representing a microlensing parameter.
 """
 from __future__ import annotations
 
+import math
 import re
 import pandas as pd
 from io import StringIO
@@ -134,7 +135,7 @@ class LensModelParameter:
         return input_string
 
     @classmethod
-    def dictionary_from_lowest_chi_squared_from_run_output(
+    def dictionary_from_most_recent_chi_squared_reduced_accepted_from_run_output(
             cls, run_path: Path, lens_parameter_name_enum: Type[LensModelParameterNameEnum] = BinaryLensModelParameterNameEnum
     ) -> Dict[str, LensModelParameter]:
         column_names = lens_parameter_name_enum.as_list()
@@ -147,6 +148,38 @@ class LensModelParameter:
                     while 'FCN call with a =' not in lens_parameter_line:
                         lens_parameter_line = file_read_backwards.readline().strip() + ' ' + lens_parameter_line
                     break
+        lens_parameter_line = lens_parameter_line.replace('FCN call with a =', '').strip()
+        lens_parameter_string_io = StringIO(lens_parameter_line)
+        lens_parameter_data_frame = pd.read_csv(lens_parameter_string_io, delim_whitespace=True,
+                                                usecols=list(range(len(column_names))), skipinitialspace=True,
+                                                header=None,
+                                                index_col=None, names=column_names)
+        lens_parameter_row = lens_parameter_data_frame.iloc[0]
+        lens_model_parameter_dictionary = cls.dictionary_from_david_bennett_input_file(run_path.joinpath('run_1.in'))
+        for lens_model_parameter_name, lens_model_parameter in lens_model_parameter_dictionary.items():
+            lens_model_parameter.value = lens_parameter_row[lens_model_parameter_name]
+        return lens_model_parameter_dictionary
+
+    @classmethod
+    def dictionary_from_lowest_chi_squared_from_run_output(
+            cls, run_path: Path,
+            lens_parameter_name_enum: Type[LensModelParameterNameEnum] = BinaryLensModelParameterNameEnum
+    ) -> Dict[str, LensModelParameter]:
+        column_names = lens_parameter_name_enum.as_list()
+        lowest_chi_squared = math.inf
+        with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:
+            while True:
+                line = file_read_backwards.readline()
+                if line == '':
+                    break
+                if line.strip().startswith('accepted due to chi2 improvement'):
+                    chi_squared_line = file_read_backwards.readline()
+                    chi_squared = float(chi_squared_line.replace('chi2 =', ''))
+                    if chi_squared < lowest_chi_squared:
+                        lowest_chi_squared = chi_squared
+                        lens_parameter_line = ''
+                        while 'FCN call with a =' not in lens_parameter_line:
+                            lens_parameter_line = file_read_backwards.readline().strip() + ' ' + lens_parameter_line
         lens_parameter_line = lens_parameter_line.replace('FCN call with a =', '').strip()
         lens_parameter_string_io = StringIO(lens_parameter_line)
         lens_parameter_data_frame = pd.read_csv(lens_parameter_string_io, delim_whitespace=True,
