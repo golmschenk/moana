@@ -17,8 +17,8 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 
 np.seterr(all='raise')
 
-run0 = Run(Path('/Users/golmschenk/Desktop/clean_slate_close_only_moa_initial_mcmc_step1_2022_03_08_dl_2022_03_15'))
-run1 = Run(Path('/Users/golmschenk/Desktop/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_08_dl_2022_03_15'))
+run0 = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_close_only_moa_initial_mcmc_step1_2022_03_24'))
+run1 = Run(Path('/Users/golmschenk/clean_slate_close_only_moa_initial_mcmc_step1_2022_03_24_with_circular_plane_of_sky_orbital_motion_estimate'))
 # Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 run0.dbc_output.load()
 run1.dbc_output.load()
