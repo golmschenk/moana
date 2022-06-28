@@ -221,7 +221,7 @@ class Run:
     def extract_final_parameters_from_run_output_file(self) -> Dict[NameElement, LensModelParameter]:
         final_parameter_lines = []
         with FileReadBackwards(self.main_output_file_path) as file_read_backwards:
-            assert 'MINUIT TERMINATED BY MINUIT COMMAND: EXIT' in file_read_backwards.readline()
+            # assert 'MINUIT TERMINATED BY MINUIT COMMAND: EXIT' in file_read_backwards.readline()
             while True:
                 line = file_read_backwards.readline()
                 if '=' in line:  # We've reached the normalization parameter rows.

@@ -60,8 +60,8 @@ class NameEnum(NameEnumBase):
     EINSTEIN_RADIUS = NameElement(name='einstein_radius', latex_string=r'\theta_\mathrm{E}')
     CHI_SQUARED_STATISTIC = NameElement(name='chi_squared_statistic', david_bennett_name='chisq', latex_string=r'\chi^2')
     INVERSE_EINSTEIN_CROSSING_TIME = NameElement(name='inverse_einstein_crossing_time', david_bennett_name='1/t_E')
-    MINIMUM_ANGULAR_SEPARATION_TIME = NameElement(name='minimum_angular_separation_time', david_bennett_name='t0', latex_string=r't_0')
-    MINIMUM_ANGULAR_SEPARATION = NameElement(name='minimum_angular_separation', david_bennett_name='umin', latex_string=r'u_0')
+    MINIMUM_SEPARATION_TIME = NameElement(name='minimum_separation_time', david_bennett_name='t0', latex_string=r't_0')
+    MINIMUM_SEPARATION = NameElement(name='minimum_separation', david_bennett_name='umin', latex_string=r'u_0')
     MASS_RATIO = NameElement(name='mass_ratio', latex_string=r'q')
     SECONDARY_SEPARATION = NameElement(name='secondary_separation', david_bennett_name='sep', latex_string=r's')
     SECONDARY_RELATIVE_MOTION = NameElement(name='secondary_relative_motion', david_bennett_name='theta', latex_string=r'\theta')
@@ -74,8 +74,8 @@ class NameEnum(NameEnumBase):
     PI_ETH = NameElement(name='pi_eth', david_bennett_name='pieth', latex_string=r'\theta_{\pi_{\mathrm{E}}}')
     PI_EX = NameElement(name='pi_ex', david_bennett_name='piEx')
     PI_EY = NameElement(name='pi_ey', david_bennett_name='piEy')
-    SOURCE_2_MINIMUM_ANGULAR_SEPARATION_TIME = NameElement(name='source_2_minimum_angular_separation_time', david_bennett_name='t0s2', latex_string=r't_{0, s_{2}}')
-    SOURCE_2_MINIMUM_ANGULAR_SEPARATION = NameElement(name='source_2_minimum_angular_separation', david_bennett_name='umins2', latex_string=r'u_{0, s_{2}}')
+    SOURCE_2_MINIMUM_SEPARATION_TIME = NameElement(name='source_2_minimum_separation_time', david_bennett_name='t0s2', latex_string=r't_{0, s_{2}}')
+    SOURCE_2_MINIMUM_SEPARATION = NameElement(name='source_2_minimum_separation', david_bennett_name='umins2', latex_string=r'u_{0, s_{2}}')
     I_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE = NameElement(name='i_band_flux_fraction_from_second_source', david_bennett_name='f2rI', latex_string=r'f_{I, s_{2}}')
     F_2_MRPOW_I = NameElement(name='f_2_mrpow_i', david_bennett_name='f2MRpowI')
     R_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE = NameElement(name='r_band_flux_fraction_from_second_source', david_bennett_name='f2rV', latex_string=r'f_{R, s_{2}}')
@@ -96,8 +96,8 @@ class NameEnum(NameEnumBase):
 
 class LensModelParameterNameEnum(NameEnumBase):
     INVERSE_EINSTEIN_CROSSING_TIME = NameEnum.INVERSE_EINSTEIN_CROSSING_TIME
-    MINIMUM_ANGULAR_SEPARATION_TIME = NameEnum.MINIMUM_ANGULAR_SEPARATION_TIME
-    MINIMUM_ANGULAR_SEPARATION = NameEnum.MINIMUM_ANGULAR_SEPARATION
+    MINIMUM_SEPARATION_TIME = NameEnum.MINIMUM_SEPARATION_TIME
+    MINIMUM_SEPARATION = NameEnum.MINIMUM_SEPARATION
     SECONDARY_SEPARATION = NameEnum.SECONDARY_SEPARATION
     SECONDARY_THETA = NameEnum.SECONDARY_RELATIVE_MOTION
     SECONDARY_EPSILON = NameEnum.SECONDARY_EPSILON
@@ -115,8 +115,8 @@ class BinaryLensModelParameterNameEnum(LensModelParameterNameEnum):
 class BinarySourceModelParameterNameEnum(LensModelParameterNameEnum):
     PI_EX = NameEnum.PI_EX
     PI_EY = NameEnum.PI_EY
-    SOURCE_2_MINIMUM_ANGULAR_SEPARATION_TIME = NameEnum.SOURCE_2_MINIMUM_ANGULAR_SEPARATION_TIME
-    SOURCE_2_MINIMUM_ANGULAR_SEPARATION = NameEnum.SOURCE_2_MINIMUM_ANGULAR_SEPARATION
+    SOURCE_2_MINIMUM_SEPARATION_TIME = NameEnum.SOURCE_2_MINIMUM_SEPARATION_TIME
+    SOURCE_2_MINIMUM_SEPARATION = NameEnum.SOURCE_2_MINIMUM_SEPARATION
     I_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE = NameEnum.I_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE
     F_2_MRPOW_I = NameEnum.F_2_MRPOW_I
     R_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE = NameEnum.R_BAND_FLUX_FRACTION_FROM_SECOND_SOURCE
