@@ -277,3 +277,14 @@ class Run:
             except KeyError:
                 run_input_parameter_dictionary[parameter_name] = LensModelParameter(value)
         return run_input_parameter_dictionary
+
+    def remove_results_files(self) -> None:
+        def rename_as_removed_if_exists(path: Path) -> None:
+            if path.exists():
+                path.rename(path.parent.joinpath(path.name + '.removed'))
+        rename_as_removed_if_exists(self.main_output_file_path)
+        rename_as_removed_if_exists(self.mcmc_output_file_path)
+        rename_as_removed_if_exists(self.output_input_file_path)
+        rename_as_removed_if_exists(self.path.joinpath('fit.lc_run_1'))
+        rename_as_removed_if_exists(self.path.joinpath('resid.run_1'))
+
