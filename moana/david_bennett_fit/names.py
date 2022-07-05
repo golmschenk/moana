@@ -64,7 +64,7 @@ class NameEnum(NameEnumBase):
     MINIMUM_SEPARATION = NameElement(name='minimum_separation', david_bennett_name='umin', latex_string=r'u_0')
     MASS_RATIO = NameElement(name='mass_ratio', latex_string=r'q')
     SECONDARY_SEPARATION = NameElement(name='secondary_separation', david_bennett_name='sep', latex_string=r's')
-    SECONDARY_RELATIVE_MOTION = NameElement(name='secondary_relative_motion', david_bennett_name='theta', latex_string=r'\theta')
+    SECONDARY_RELATIVE_MOTION_ANGLE = NameElement(name='secondary_relative_motion_angle', david_bennett_name='theta', latex_string=r'\theta')
     SECONDARY_EPSILON = NameElement(name='secondary_epsilon', david_bennett_name='eps1')
     INVERSE_T_BIN = NameElement(name='inverse_t_bin', david_bennett_name='1/Tbin')
     V_SEPARATION = NameElement(name='v_separation', david_bennett_name='v_sep')
@@ -99,7 +99,7 @@ class LensModelParameterNameEnum(NameEnumBase):
     MINIMUM_SEPARATION_TIME = NameEnum.MINIMUM_SEPARATION_TIME
     MINIMUM_SEPARATION = NameEnum.MINIMUM_SEPARATION
     SECONDARY_SEPARATION = NameEnum.SECONDARY_SEPARATION
-    SECONDARY_THETA = NameEnum.SECONDARY_RELATIVE_MOTION
+    SECONDARY_THETA = NameEnum.SECONDARY_RELATIVE_MOTION_ANGLE
     SECONDARY_EPSILON = NameEnum.SECONDARY_EPSILON
     INVERSE_T_BIN = NameEnum.INVERSE_T_BIN
     V_SEPARATION = NameEnum.V_SEPARATION
