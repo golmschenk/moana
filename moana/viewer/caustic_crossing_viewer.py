@@ -20,9 +20,11 @@ import moana
 
 try:
     from main_resources.theme import paper_themed_figure_and_axes
+    from main_resources.run_paths import close_model_run_path, wide_model_run_path
 except ModuleNotFoundError:  # TODO: Terrible hack. This should be redone.
     sys.path.insert(0, '/Users/golmschenk/Documents/2021_microlensing_event_moa_2020_blg_208_paper')
     from main_resources.theme import paper_themed_figure_and_axes
+    from main_resources.run_paths import close_model_run_path
 from moana.david_bennett_fit.names import NameEnum
 from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
@@ -122,7 +124,32 @@ def get_run_source_trajectory(run):
     return trajectory_x, trajectory_y
 
 
+class ViewRange:
+    def __init__(self, lower: float, upper: float):
+        assert lower < upper
+        self.lower = lower
+        self.upper = upper
+
+
+class ViewBoundingBox:
+    def __init__(self, x_range: ViewRange, y_range: ViewRange):
+        self.x_range = x_range
+        self.y_range = y_range
+
+
 def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: bool = False):
+    # # Wide model.
+    # lens0_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.006, 0.004),
+    #                                           y_range=ViewRange(-0.005, 0.005))
+    # lens1_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.69, -0.62),
+    #                                           y_range=ViewRange(-0.035, 0.035))
+
+    # Close model.
+    lens1_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.007, 0.003),
+                                              y_range=ViewRange(-0.005, 0.005))
+    lens0_view_bounding_box = ViewBoundingBox(x_range=ViewRange(0.6, 0.63),
+                                              y_range=ViewRange(0.033, 0.063))
+
     # Map of PSPL model
     number_of_x_pixels = 16384
     number_of_y_pixels = number_of_x_pixels
@@ -176,33 +203,11 @@ def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: 
         with open('magnification_pattern_l2.pkl', 'rb') as handle:
             magnification_pattern_l2 = pickle.load(handle)
 
-    # # Map of the central caustic
-    # central_region = (-0.012, -0.004, 0.004, 0.004)
-    # number_of_x_pixels = 4 * 1024
-    # number_of_y_pixels = 4 * 512
-    # central_magnification_pattern = rayshoot(binary_lens, central_region, number_of_x_pixels, number_of_y_pixels,
-    #                                          num_threads=4)
-    #
-    # figure, axes = plt.subplots()
-    # image = axes.imshow(central_magnification_pattern, cmap="hot", origin='lower',
-    #            norm=LogNorm(vmin=np.min(central_magnification_pattern), vmax=np.max(central_magnification_pattern)),
-    #            extent=[central_region[0], central_region[2], central_region[1], central_region[3]])
-    # figure.colorbar(image)
-    # plt.show()
-
     magnification_difference = magnification_pattern_l2 - single_lens_magnification_pattern
 
     masked_magnification_difference = ma.masked_where(
         (magnification_difference < -0.2) | (magnification_difference > 0.2), magnification_difference)
     masked_magnification_difference.fill_value = 0
-
-    # figure, axes = plt.subplots()
-    # image = axes.imshow(masked_magnification_difference, cmap="coolwarm", origin='lower',
-    #            extent=[full_plotting_region[0], full_plotting_region[2], full_plotting_region[1],
-    #                    full_plotting_region[3]])
-    #
-    # figure.colorbar(image)
-    # plt.show()
 
     for linear_threshold in [0.01]:
         with paper_themed_figure_and_axes() as (figure, axes):
@@ -248,8 +253,8 @@ def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: 
                               magnification_difference)
             add_data_to_axes(lens0_inset_axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean,
                              y_mean)
-            lens0_inset_axes.set_xlim(-0.006, 0.004)
-            lens0_inset_axes.set_ylim(-0.005, 0.005)
+            lens0_inset_axes.set_xlim(lens0_view_bounding_box.x_range.lower, lens0_view_bounding_box.x_range.upper)
+            lens0_inset_axes.set_ylim(lens0_view_bounding_box.y_range.lower, lens0_view_bounding_box.y_range.upper)
             lens0_inset_axes.set_xticklabels([])
             lens0_inset_axes.set_yticklabels([])
             _, connections = axes.indicate_inset_zoom(lens0_inset_axes)
@@ -264,8 +269,8 @@ def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: 
                               magnification_difference)
             add_data_to_axes(lens1_inset_axes, imaginary_component, real_component, trajectory_x, trajectory_y, x_mean,
                              y_mean)
-            lens1_inset_axes.set_xlim(-0.69, -0.62)
-            lens1_inset_axes.set_ylim(-0.035, 0.035)
+            lens1_inset_axes.set_xlim(lens1_view_bounding_box.x_range.lower, lens1_view_bounding_box.x_range.upper)
+            lens1_inset_axes.set_ylim(lens1_view_bounding_box.y_range.lower, lens1_view_bounding_box.y_range.upper)
             lens1_inset_axes.set_xticklabels([])
             lens1_inset_axes.set_yticklabels([])
             axes.indicate_inset_zoom(lens1_inset_axes)
@@ -289,6 +294,5 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(Path(
-        '/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_wide_only_moa_initial_mcmc_step1_2022_03_17_dl_2022_03_22'))
+    run_ = Run(close_model_run_path)
     create_magnification_pattern_and_trajectory_figure(run_, use_cached_results=True)
