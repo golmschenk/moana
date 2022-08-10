@@ -163,11 +163,12 @@ class LensModelParameter:
     @classmethod
     def dictionary_from_lowest_chi_squared_from_run_output(
             cls, run_path: Path,
-            lens_parameter_name_enum: Type[LensModelParameterNameEnum] = BinaryLensModelParameterNameEnum
+            lens_parameter_name_enum: Type[LensModelParameterNameEnum] = BinaryLensModelParameterNameEnum,
+            output_file_name='run_1.out'
     ) -> Dict[str, LensModelParameter]:
         column_names = lens_parameter_name_enum.as_list()
         lowest_chi_squared = math.inf
-        with FileReadBackwards(run_path.joinpath('run_1.out')) as file_read_backwards:
+        with FileReadBackwards(run_path.joinpath(output_file_name)) as file_read_backwards:
             while True:
                 line = file_read_backwards.readline()
                 if line == '':

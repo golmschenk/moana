@@ -39,6 +39,7 @@ class ColumnName(StrEnum):
 
 class FitModelColumnName(StrEnum):
     CHI_SQUARED = 'chi_squared'
+    CUMULATIVE_CHI_SQUARED = 'cumulative_chi_squared'
     MAGNIFICATION = 'magnification'
     MAGNIFICATION_ERROR = 'magnification_error'
     MAGNIFICATION_RESIDUAL = 'magnification_residual'
