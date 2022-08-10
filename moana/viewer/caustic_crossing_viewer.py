@@ -144,11 +144,17 @@ def create_magnification_pattern_and_trajectory_figure(run, use_cached_results: 
     # lens1_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.69, -0.62),
     #                                           y_range=ViewRange(-0.035, 0.035))
 
-    # Close model.
+    # # Close model.
+    # lens1_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.007, 0.003),
+    #                                           y_range=ViewRange(-0.005, 0.005))
+    # lens0_view_bounding_box = ViewBoundingBox(x_range=ViewRange(0.6, 0.63),
+    #                                           y_range=ViewRange(0.033, 0.063))
+
+    # Second close model.
     lens1_view_bounding_box = ViewBoundingBox(x_range=ViewRange(-0.007, 0.003),
                                               y_range=ViewRange(-0.005, 0.005))
-    lens0_view_bounding_box = ViewBoundingBox(x_range=ViewRange(0.6, 0.63),
-                                              y_range=ViewRange(0.033, 0.063))
+    lens0_view_bounding_box = ViewBoundingBox(x_range=ViewRange(0.575, 0.605),
+                                              y_range=ViewRange(-0.05, -0.02))
 
     # Map of PSPL model
     number_of_x_pixels = 16384
@@ -294,5 +300,5 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(close_model_run_path)
+    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_close_second_close'))
     create_magnification_pattern_and_trajectory_figure(run_, use_cached_results=True)
