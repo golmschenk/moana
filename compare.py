@@ -4,6 +4,8 @@ import numpy as np
 from bokeh.io import show, save
 from bokeh.models import Row, Column
 
+from main_resources.run_paths import wide_model_run_path, close_model_run_path, single_source_single_lens_run_path, \
+    second_wide_model_run_path
 from moana.david_bennett_fit.names import BinarySourceModelParameterNameEnum
 from moana.david_bennett_fit.run import Run
 from moana.light_curve import LightCurve
@@ -17,8 +19,8 @@ from moana.viewer.run_fit_viewer import RunFitViewer
 
 np.seterr(all='raise')
 
-run0 = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_close_only_moa_initial_mcmc_step1_2022_03_24'))
-run1 = Run(Path('/Users/golmschenk/clean_slate_close_only_moa_initial_mcmc_step1_2022_03_24_with_circular_plane_of_sky_orbital_motion_estimate'))
+run0 = Run(wide_model_run_path)
+run1 = Run(single_source_single_lens_run_path)
 # Run.make_short_display_names_from_unique_directory_name_components([run0, run1])
 run0.dbc_output.load()
 run1.dbc_output.load()
@@ -52,7 +54,7 @@ caustic_row.sizing_mode = 'stretch_width'
 
 bottom_parameter_comparison_table = viewer.create_run_parameter_comparison_table(
     run0, run1)
-cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models(run0, run1)
+cumulative_delta_chi_squared_figure = ChiSquaredViewer.for_comparison_of_two_fit_models_per_instrument(run0, run1)
 cumulative_delta_chi_squared_figure.sizing_mode = 'stretch_width'
 
 # galactic_model_cumulative_distributions = GalacticModelViewer.comparison_for_runs([run0, run1])
