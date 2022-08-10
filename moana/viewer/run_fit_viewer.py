@@ -1,8 +1,4 @@
 import copy
-import re
-from pathlib import Path
-from typing import Type
-
 import numpy as np
 import pandas as pd
 from bokeh.layouts import gridplot
@@ -183,6 +179,14 @@ class RunFitViewer:
         relative_scale = np.average(relative_scale_series.values, weights=instrument_data_count_series.values)
         relative_shift = np.average(relative_shift_series.values, weights=instrument_data_count_series.values)
         return relative_scale, relative_shift
+
+    def calculate_mean_relative_instrument_magnification_scale_and_shift(
+            self, run0: Run, run1: Run) -> (float, float):
+        assert np.allclose(run0.dbc_output.resid['date'].values, run1.dbc_output.resid['date'].values)
+        scale, shift = np.polyfit(run0.dbc_output.resid['mgf_model'].values,
+                                  run1.dbc_output.resid['mgf_model'].values,
+                                  1)
+        return scale, shift
 
     def reverse_scale_and_shift_run(self, run: Run, scale: float, shift: float) -> Run:
         run = copy.deepcopy(run)
