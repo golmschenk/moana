@@ -20,7 +20,7 @@ import moana
 
 try:
     from main_resources.theme import paper_themed_figure_and_axes
-    from main_resources.run_paths import close_model_run_path, wide_model_run_path
+    from main_resources.run_paths import close_model_run_path, wide_model_run_path, second_close_model_run_path
 except ModuleNotFoundError:  # TODO: Terrible hack. This should be redone.
     sys.path.insert(0, '/Users/golmschenk/Documents/2021_microlensing_event_moa_2020_blg_208_paper')
     from main_resources.theme import paper_themed_figure_and_axes
@@ -300,5 +300,5 @@ def find_index_of_xy_closest_to_point(y_array: np.ndarray, x_array: np.ndarray, 
 
 
 if __name__ == '__main__':
-    run_ = Run(Path('/Users/golmschenk/Code/moana/data/mb20208/runs/clean_slate_close_second_close'))
-    create_magnification_pattern_and_trajectory_figure(run_, use_cached_results=True)
+    run_ = Run(second_close_model_run_path)
+    create_magnification_pattern_and_trajectory_figure(run_, use_cached_results=False)
