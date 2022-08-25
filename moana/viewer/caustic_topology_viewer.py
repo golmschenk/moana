@@ -26,7 +26,7 @@ class CausticTopologyViewer:
             legend_label = None
             if legend_labels is not None:
                 legend_label = legend_labels[index]
-            viewer.add_run_to_figure(figure, run, legend_label)
+            viewer.add_run_to_figure(figure, run, legend_label, dot=bool(index))
         return figure
 
     @staticmethod
@@ -47,11 +47,15 @@ class CausticTopologyViewer:
         return figure
 
     @staticmethod
-    def add_run_to_figure(figure: Figure, run: Run, legend_label: Optional[str] = None):
+    def add_run_to_figure(figure: Figure, run: Run, legend_label: Optional[str] = None, dot: bool = False):
         color_mapper = ColorMapper()
         color = color_mapper.get_fit_color(str(run.path))
         kwargs = {}
         if legend_label is not None:
             kwargs['legend_label'] = legend_label
-        figure.circle(x=run.dbc_output.param['sep'], y=run.dbc_output.param['q'], size=20, alpha=0.5, color=color,
-                      **kwargs)
+        if dot:
+            figure.circle_dot(x=run.dbc_output.param['sep'], y=run.dbc_output.param['q'], size=20, alpha=0.5,
+                              color=color, **kwargs)
+        else:
+            figure.circle(x=run.dbc_output.param['sep'], y=run.dbc_output.param['q'], size=20, alpha=0.5, color=color,
+                          **kwargs)
