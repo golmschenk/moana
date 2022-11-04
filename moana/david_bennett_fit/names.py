@@ -12,10 +12,12 @@ class NameElement(str):
         value = name
         return str.__new__(cls, value)
 
-    def __init__(self, name: str, david_bennett_name: Optional[str] = None, latex_string: Optional[str] = None):
+    def __init__(self, name: str, david_bennett_name: Optional[str] = None, latex_string: Optional[str] = None,
+                 unit_latex_string: Optional[str] = None):
         self.name: str = name
         self._david_bennett_name: Optional[str] = david_bennett_name
         self._latex_string: Optional[str] = latex_string
+        self.units_latex_string: Optional[str] = unit_latex_string
 
     @property
     def david_bennett_name(self) -> str:
@@ -56,22 +58,22 @@ class NameEnumBase:
 
 
 class NameEnum(NameEnumBase):
-    EINSTEIN_CROSSING_TIME = NameElement(name='einstein_crossing_time', latex_string=r't_\mathrm{E}')
-    EINSTEIN_RADIUS = NameElement(name='einstein_radius', latex_string=r'\theta_\mathrm{E}')
+    EINSTEIN_CROSSING_TIME = NameElement(name='einstein_crossing_time', latex_string=r't_\mathrm{E}', unit_latex_string='\mathrm{days}')
+    EINSTEIN_RADIUS = NameElement(name='einstein_radius', latex_string=r'\theta_\mathrm{0}')
     CHI_SQUARED_STATISTIC = NameElement(name='chi_squared_statistic', david_bennett_name='chisq', latex_string=r'\chi^2')
     INVERSE_EINSTEIN_CROSSING_TIME = NameElement(name='inverse_einstein_crossing_time', david_bennett_name='1/t_E')
-    MINIMUM_SEPARATION_TIME = NameElement(name='minimum_separation_time', david_bennett_name='t0', latex_string=r't_0')
+    MINIMUM_SEPARATION_TIME = NameElement(name='minimum_separation_time', david_bennett_name='t0', latex_string=r't_0', unit_latex_string='\mathrm{HJD\'}')
     MINIMUM_SEPARATION = NameElement(name='minimum_separation', david_bennett_name='umin', latex_string=r'u_0')
     MASS_RATIO = NameElement(name='mass_ratio', latex_string=r'q')
     SECONDARY_SEPARATION = NameElement(name='secondary_separation', david_bennett_name='sep', latex_string=r's')
-    SECONDARY_SEPARATION_ANGLE = NameElement(name='secondary_separation_angle', david_bennett_name='theta', latex_string=r'\theta')
+    SECONDARY_SEPARATION_ANGLE = NameElement(name='secondary_separation_angle', david_bennett_name='theta', latex_string=r'\theta', unit_latex_string='\mathrm{rad}')
     SECONDARY_EPSILON = NameElement(name='secondary_epsilon', david_bennett_name='eps1')
     INVERSE_T_BIN = NameElement(name='inverse_t_bin', david_bennett_name='1/Tbin')
     V_SEPARATION = NameElement(name='v_separation', david_bennett_name='v_sep')
-    SOURCE_RADIUS_CROSSING_TIME = NameElement(name='source_radius_crossing_time', david_bennett_name='Tstar', latex_string=r't_*')
+    SOURCE_RADIUS_CROSSING_TIME = NameElement(name='source_radius_crossing_time', david_bennett_name='Tstar', latex_string=r't_*', unit_latex_string='\mathrm{days}')
     T_FIX = NameElement(name='t_fix', david_bennett_name='t_fix')
     PI_ER = NameElement(name='pi_er', david_bennett_name='piEr', latex_string=r'r_{\pi_{\mathrm{E}}}')
-    PI_ETH = NameElement(name='pi_eth', david_bennett_name='pieth', latex_string=r'\theta_{\pi_{\mathrm{E}}}')
+    PI_ETH = NameElement(name='pi_eth', david_bennett_name='pieth', latex_string=r'\theta_{\pi_{\mathrm{E}}}', unit_latex_string='\mathrm{rad}')
     PI_EX = NameElement(name='pi_ex', david_bennett_name='piEx')
     PI_EY = NameElement(name='pi_ey', david_bennett_name='piEy')
     SOURCE_2_MINIMUM_SEPARATION_TIME = NameElement(name='source_2_minimum_separation_time', david_bennett_name='t0s2', latex_string=r't_{0, s_{2}}')
