@@ -110,8 +110,8 @@ class LensModelParameterNameEnum(NameEnumBase):
 
 
 class BinaryLensModelParameterNameEnum(LensModelParameterNameEnum):
-    PI_ER = NameEnum.PI_ER
-    PI_ETH = NameEnum.PI_ETH
+    PI_EX = NameEnum.PI_EX
+    PI_EY = NameEnum.PI_EY
 
 
 class BinarySourceModelParameterNameEnum(LensModelParameterNameEnum):
