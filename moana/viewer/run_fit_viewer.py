@@ -56,7 +56,7 @@ class RunFitViewer:
         fit_times = run.dbc_output.fitlc['date']
         if run.lens_model_parameter_name_enum == BinarySourceModelParameterNameEnum:
             fit_model_light_curve_dictionary = LightCurve.dictionary_from_david_bennett_fit_file(
-                run.path.joinpath('fit.lc_run_1'))
+                run.path.joinpath(f'fit.lc_{run.david_bennett_run_name}'))
             for instrument_suffix, fit_model_light_curve in fit_model_light_curve_dictionary.items():
                 instrument_color = color_mapper.get_instrument_color(instrument_suffix)
                 light_curve_figure.line(source=fit_model_light_curve.data_frame, x=ColumnName.TIME__MICROLENSING_HJD,
