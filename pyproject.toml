@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moana_golmschenk"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["Greg Olmschenk <golmschenk@gmail.com>"]
 packages = [
@@ -15,6 +15,7 @@ file-read-backwards = "^2.0.0"
 tabulate = "^0.8.9"
 numpy = "^1.24.1"
 matplotlib = "^3.7.0"
+pandas = "^1.5.3"
 
 [tool.poetry.dev-dependencies]
 
