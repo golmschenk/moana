@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "moana"
-version = "0.1.0"
+name = "moana_golmschenk"
+version = "0.1.1"
 description = ""
 authors = ["Greg Olmschenk <golmschenk@gmail.com>"]
+packages = [
+    {include = "moana"}
+]
 
 [tool.poetry.dependencies]
 python =  ">=3.9,<3.10"
@@ -10,6 +13,8 @@ scipy = "^1.6.2"
 bokeh = "^2.3.1"
 file-read-backwards = "^2.0.0"
 tabulate = "^0.8.9"
+numpy = "^1.24.1"
+matplotlib = "^3.7.0"
 
 [tool.poetry.dev-dependencies]
 
