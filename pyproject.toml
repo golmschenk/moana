@@ -1,25 +1,41 @@
-[tool.poetry]
-name = "moana_golmschenk"
-version = "0.1.5"
-description = ""
-authors = ["Greg Olmschenk <golmschenk@gmail.com>"]
-packages = [
-    {include = "moana"}
+[project]
+name = "moana-astro"
+dynamic = ["version"]
+description = "MOAna: Microlensing Observations ANAlysis tools"
+readme = "README.rst"
+license = "MIT"
+authors = [
+    { name = "Clément Ranc" },
+    { email = "ranc@iap.fr" },
+    { name = "Stela Ishitani Silva" },
+    { name = "Greg Olmschenk" },
+    { name = "MOAna authors" },
+]
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.8.4",
+    "pandas>=2.1.4",
+    "scipy>=1.14.1",
 ]
 
-[tool.poetry.dependencies]
-python =  ">=3.9"
-scipy = ">=1.6.2"
-bokeh = ">=2.3.1"
-file-read-backwards = ">=2.0.0"
-tabulate = "^0.8.9"
-numpy = ">=2.0.0"
-matplotlib = ">=3.7.0"
-pandas = ">=1.5.3"
-backports-strenum = ">=1.2.4"
-
-[tool.poetry.dev-dependencies]
+[project.urls]
+Homepage = "https://github.com/clementranc/moana"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/moana/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/moana"]
+
+[tool.hatch.envs.all]
+dependencies = ["pytest"]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
