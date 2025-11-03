@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moana_golmschenk"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = ["Greg Olmschenk <golmschenk@gmail.com>"]
 packages = [
@@ -8,15 +8,15 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python =  ">=3.9,<3.10"
-scipy = "^1.6.2"
-bokeh = "^2.3.1"
-file-read-backwards = "^2.0.0"
+python =  ">=3.9"
+scipy = ">=1.6.2"
+bokeh = ">=2.3.1"
+file-read-backwards = ">=2.0.0"
 tabulate = "^0.8.9"
-numpy = "^1.23.0,<1.24.0"
-matplotlib = "^3.7.0"
-pandas = "^1.5.3"
-backports-strenum = "^1.2.4"
+numpy = ">=2.0.0"
+matplotlib = ">=3.7.0"
+pandas = ">=1.5.3"
+backports-strenum = ">=1.2.4"
 
 [tool.poetry.dev-dependencies]
 

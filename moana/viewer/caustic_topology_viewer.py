@@ -10,17 +10,17 @@ from moana.david_bennett_fit.run import Run
 from moana.viewer.color_mapper import ColorMapper
 
 
-class CausticTopologyViewer:
+class CausticTypeBoundaryViewer:
     @classmethod
     def figure_for_run_path(cls, run: Run) -> Figure:
-        viewer = CausticTopologyViewer()
+        viewer = CausticTypeBoundaryViewer()
         figure = viewer.create_caustic_topology_figure()
         viewer.add_run_to_figure(figure, run)
         return figure
 
     @classmethod
     def figure_for_multiple_runs(cls, runs: List[Run], legend_labels: Optional[List[str]] = None) -> Figure:
-        viewer = CausticTopologyViewer()
+        viewer = CausticTypeBoundaryViewer()
         figure = viewer.create_caustic_topology_figure()
         for index, run in enumerate(runs):
             legend_label = None

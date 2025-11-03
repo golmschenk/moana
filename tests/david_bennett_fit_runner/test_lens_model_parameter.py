@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch, Mock
 
 from moana.david_bennett_fit.lens_model_parameter import LensModelParameter
-
+from moana.david_bennett_fit.names import BinaryLensModelWithPolarCoordinatesParallaxParameterNameEnum, NameEnum
 
 # noinspection SpellCheckingInspection
 fake_david_bennett_input_file_contents = ["Fit to binary microlens for star MB20208 fit series run_\n",
@@ -39,57 +39,40 @@ class TestLensModelParameter:
             stub_read_lines = Mock(return_value=fake_david_bennett_input_file_contents)
             stub_open.return_value.__enter__.return_value = Mock(readlines=stub_read_lines)
             path = Path('')
-            lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(path)
-            assert lens_model_parameter_dictionary['t0'].value == 9101.0
-            assert lens_model_parameter_dictionary['sep'].temperature == 0.00005
-            assert lens_model_parameter_dictionary['theta'].minimum_limit == -7.0
-            assert lens_model_parameter_dictionary['theta'].maximum_limit == 7.0
+            lens_model_parameter_dictionary = LensModelParameter.dictionary_from_david_bennett_input_file(
+                path, BinaryLensModelWithPolarCoordinatesParallaxParameterNameEnum)
+            assert lens_model_parameter_dictionary[NameEnum.element_from_david_bennett_name('t0')].value == 9101.0
+            assert lens_model_parameter_dictionary[NameEnum.element_from_david_bennett_name('sep')].temperature == 0.00005
+            assert lens_model_parameter_dictionary[NameEnum.element_from_david_bennett_name('theta')].minimum_limit == -7.0
+            assert lens_model_parameter_dictionary[NameEnum.element_from_david_bennett_name('theta')].maximum_limit == 7.0
 
     def test_can_create_david_bennett_input_string_from_parameters_dictionary(self):
         parameter_dictionary = {
-            'v_sep': LensModelParameter(value=1, temperature=2),
-            '1/t_E': LensModelParameter(value=1, temperature=2),
-            't0': LensModelParameter(value=1, temperature=2),
-            'umin': LensModelParameter(value=1, temperature=2),
-            'theta': LensModelParameter(value=1, temperature=2),
-            'eps1': LensModelParameter(value=1, temperature=2),
-            '1/Tbin': LensModelParameter(value=1, temperature=1e-8),
-            'sep': LensModelParameter(value=1, temperature=2, minimum_limit=0, maximum_limit=4),
-            'Tstar': LensModelParameter(value=1, temperature=2),
-            't_fix': LensModelParameter(value=1, temperature=2, minimum_limit=1e-7, maximum_limit=1e2),
-            'piEr': LensModelParameter(value=1, temperature=2),
-            'pieth': LensModelParameter(value=1, temperature=2)
+            NameEnum.element_from_david_bennett_name('v_sep'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('1/t_E'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('t0'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('umin'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('theta'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('eps1'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('1/Tbin'): LensModelParameter(value=1, temperature=1e-8),
+            NameEnum.element_from_david_bennett_name('sep'): LensModelParameter(value=1, temperature=2, minimum_limit=0, maximum_limit=4),
+            NameEnum.element_from_david_bennett_name('Tstar'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('t_fix'): LensModelParameter(value=1, temperature=2, minimum_limit=1e-7, maximum_limit=1e2),
+            NameEnum.element_from_david_bennett_name('piEr'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('pieth'): LensModelParameter(value=1, temperature=2)
         }
-        input_string = LensModelParameter.david_bennett_input_string_from_dictionary(parameter_dictionary)
+        input_string = LensModelParameter.david_bennett_input_string_from_dictionary(
+            parameter_dictionary, BinaryLensModelWithPolarCoordinatesParallaxParameterNameEnum)
         assert re.search(r"4\s+'sep'\s+1.0\s+2.0\s+0.0\s+4.0\n", input_string)
         assert re.search(r"7\s+'1/Tbin'\s+1.0\s+1e-08\n", input_string)
 
     def test_create_david_bennett_input_string_from_parameters_dictionary_fails_for_missing_parameter(self):
         parameter_dictionary = {
-            'v_sep': LensModelParameter(value=1, temperature=2),
-            '1/t_E': LensModelParameter(value=1, temperature=2),
-            't0': LensModelParameter(value=1, temperature=2),
-            'umin': LensModelParameter(value=1, temperature=2),
-            'theta': LensModelParameter(value=1, temperature=2)
+            NameEnum.element_from_david_bennett_name('v_sep'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('1/t_E'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('t0'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('umin'): LensModelParameter(value=1, temperature=2),
+            NameEnum.element_from_david_bennett_name('theta'): LensModelParameter(value=1, temperature=2)
         }
         with pytest.raises(KeyError):
-            LensModelParameter.david_bennett_input_string_from_dictionary(parameter_dictionary)
-
-    def test_create_david_bennett_input_string_from_parameters_dictionary_fails_for_unknown_parameter(self):
-        parameter_dictionary = {
-            'v_sep': LensModelParameter(value=1, temperature=2),
-            '1/t_E': LensModelParameter(value=1, temperature=2),
-            't0': LensModelParameter(value=1, temperature=2),
-            'umin': LensModelParameter(value=1, temperature=2),
-            'theta': LensModelParameter(value=1, temperature=2),
-            'eps1': LensModelParameter(value=1, temperature=2),
-            '1/Tbin': LensModelParameter(value=1, temperature=2),
-            'sep': LensModelParameter(value=1, temperature=2, minimum_limit=0, maximum_limit=4),
-            'Tstar': LensModelParameter(value=1, temperature=2),
-            't_fix': LensModelParameter(value=1, temperature=2),
-            'piEr': LensModelParameter(value=1, temperature=2),
-            'pieth': LensModelParameter(value=1, temperature=2),
-            'unknown_name': LensModelParameter(value=1, temperature=2)
-        }
-        with pytest.raises(AssertionError):
             LensModelParameter.david_bennett_input_string_from_dictionary(parameter_dictionary)
